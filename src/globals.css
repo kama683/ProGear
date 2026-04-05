@@ -1,0 +1,164 @@
+/* ─── ProGear Global Styles ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Design Tokens ────────────────────────────────────────────────────── */
+:root {
+  --bg-primary:     #09090b;
+  --bg-secondary:   #111116;
+  --bg-card:        rgba(255, 255, 255, 0.04);
+  --bg-card-hover:  rgba(255, 255, 255, 0.07);
+  --accent:         #00f5d4;
+  --accent-bright:  #00e5ff;
+  --accent-dim:     rgba(0, 245, 212, 0.15);
+  --accent-glow:    rgba(0, 245, 212, 0.35);
+  --text-primary:   #f1f5f9;
+  --text-secondary: #64748b;
+  --text-muted:     #334155;
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-accent:  rgba(0, 245, 212, 0.3);
+  --sidebar-width:  220px;
+  --header-height:  60px;
+
+  /* Status colors */
+  --status-created: #f59e0b;
+  --status-in-use:  #00f5d4;
+  --status-returned:#6366f1;
+
+  /* Log level colors */
+  --log-info:    #38bdf8;
+  --log-warn:    #fbbf24;
+  --log-error:   #f87171;
+  --log-success: #4ade80;
+  --log-cache:   #a78bfa;
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Custom Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── Typography ────────────────────────────────────────────────────────────── */
+.font-display { font-family: 'Syne', sans-serif; }
+
+/* ─── Glassmorphism ─────────────────────────────────────────────────────────── */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+.glass-accent {
+  background: var(--accent-dim);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-accent);
+}
+
+/* ─── Glow Effects ──────────────────────────────────────────────────────────── */
+.glow-accent {
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 245, 212, 0.1);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ─── Accent Button ─────────────────────────────────────────────────────────── */
+.btn-accent {
+  background: var(--accent);
+  color: #09090b;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+.btn-accent:hover {
+  background: var(--accent-bright);
+  box-shadow: 0 0 24px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.btn-accent:active { transform: translateY(0); }
+
+/* ─── Noise Overlay ─────────────────────────────────────────────────────────── */
+.noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ─── Status Badge ──────────────────────────────────────────────────────────── */
+.status-created  { color: var(--status-created); border-color: var(--status-created); }
+.status-in-use   { color: var(--status-in-use);  border-color: var(--status-in-use); }
+.status-returned { color: var(--status-returned); border-color: var(--status-returned); }
+
+/* ─── Logger Console ────────────────────────────────────────────────────────── */
+.log-info    { color: var(--log-info); }
+.log-warn    { color: var(--log-warn); }
+.log-error   { color: var(--log-error); }
+.log-success { color: var(--log-success); }
+.log-cache   { color: var(--log-cache); }
+
+/* ─── Sidebar active item ───────────────────────────────────────────────────── */
+.nav-active {
+  color: var(--accent) !important;
+  background: var(--accent-dim) !important;
+  border-right: 2px solid var(--accent);
+}
+
+/* ─── Scanline decorative effect ───────────────────────────────────────────── */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+.scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(transparent, var(--accent), transparent);
+  opacity: 0.15;
+  animation: scanline 6s linear infinite;
+  pointer-events: none;
+}
+
+/* ─── Pulse dot ─────────────────────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+.pulse-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* ─── Progress Step animation ───────────────────────────────────────────────── */
+@keyframes step-fill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.step-fill { animation: step-fill 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
