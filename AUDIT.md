@@ -1,7 +1,7 @@
 # Repository Audit
 
 **Project:** Pixel Rental  
-**Auditor:** [Your Name]  
+**Auditor:** Ansar Abylkanov, Yunussaliyev Kamron, Kabdrash Erasyl, Damir Bakhtiyarov
 **Date:** April 14, 2025
 
 ---
