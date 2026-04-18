@@ -1,21 +1,17 @@
 const BASE_URL = '/api/v1';
 
-
 export class ApiResponseError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-  ) {
+  status: number;
+  constructor(message: string, status: number) {
     super(message);
     this.name = 'ApiResponseError';
+    this.status = status;
   }
 }
-
 
 export function getAccessToken(): string | null {
   return localStorage.getItem('access_token');
 }
-
 
 interface RequestOptions {
   method?: string;
@@ -23,21 +19,14 @@ interface RequestOptions {
   auth?: boolean;
 }
 
-export async function request<T>(
-  path: string,
-  options: RequestOptions = {},
-): Promise<T> {
+export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, auth = false } = options;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (auth) {
     const token = getAccessToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -51,9 +40,7 @@ export async function request<T>(
     try {
       const errBody = await response.json();
       if (errBody?.error) message = errBody.error;
-    } catch {
-      console.log('ign json if error body')
-    }
+    } catch { /* ignore */ }
     throw new ApiResponseError(message, response.status);
   }
 

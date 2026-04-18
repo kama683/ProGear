@@ -1,30 +1,26 @@
-import { useState } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { LoginForm } from './components/LoginForm';
-import { RegisterForm } from './components/RegisterForm';
-import { EquipmentList } from './components/EquipmentList';
+import { RouterProvider } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './hooks/useToast';
+import { router } from './router';
 
-type AuthPage = 'login' | 'register';
-
-function AppContent() {
-  const { user } = useAuth();
-  const [authPage, setAuthPage] = useState<AuthPage>('login');
-
-  if (user) {
-    return <EquipmentList />;
-  }
-
-  if (authPage === 'register') {
-    return <RegisterForm onLogin={() => setAuthPage('login')} />;
-  }
-
-  return <LoginForm onRegister={() => setAuthPage('register')} />;
-}
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

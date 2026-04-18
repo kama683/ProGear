@@ -1,0 +1,225 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Plus, X } from 'lucide-react';
+import { getEquipment, createEquipment, updateEquipment } from '../../api/equipment';
+import { useToast } from '../../hooks/useToast';
+import { LoadingCenter, Spinner } from '../../components/ui/Spinner';
+import { Alert } from '../../components/ui/Alert';
+
+import type { EquipmentType } from '../../types/api';
+
+interface FormData {
+  Name: string; Category: string; Description: string; Type: string;
+  DailyRate: string; SalePrice: string; Quantity: string;
+  Serials: string[];
+}
+
+const empty: FormData = { Name: '', Category: '', Description: '', Type: 'rental', DailyRate: '', SalePrice: '', Quantity: '1', Serials: [] };
+
+export function EquipmentFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const isEdit = !!id;
+  const navigate = useNavigate();
+  const { success, error: toastError } = useToast();
+  const qc = useQueryClient();
+
+  const [form, setForm] = useState<FormData>(empty);
+  const [serialInput, setSerialInput] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const { data: existing, isLoading } = useQuery({
+    queryKey: ['equipment', Number(id)],
+    queryFn: () => getEquipment(Number(id)),
+    enabled: isEdit,
+  });
+
+  useEffect(() => {
+    if (existing && isEdit) {
+      setForm({
+        Name: existing.Name, Category: existing.Category, Description: existing.Description,
+        Type: existing.Type, DailyRate: existing.DailyRate, SalePrice: existing.SalePrice,
+        Quantity: String(existing.Quantity), Serials: existing.Serials ?? [],
+      });
+    }
+  }, [existing, isEdit]);
+
+  const createMutation = useMutation({
+    mutationFn: createEquipment,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование добавлено!'); navigate('/equipment'); },
+    onError: (err: Error) => { setSubmitError(err.message); toastError('Ошибка', err.message); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ data }: { data: Parameters<typeof updateEquipment>[1] }) => updateEquipment(Number(id), data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование обновлено!'); navigate(`/equipment/${id}`); },
+    onError: (err: Error) => { setSubmitError(err.message); toastError('Ошибка', err.message); },
+  });
+
+  function update(field: keyof FormData, value: string) {
+    setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  function addSerial() {
+    const s = serialInput.trim();
+    if (!s || form.Serials.includes(s)) return;
+    setForm(prev => ({ ...prev, Serials: [...prev.Serials, s] }));
+    setSerialInput('');
+  }
+
+  function removeSerial(s: string) {
+    setForm(prev => ({ ...prev, Serials: prev.Serials.filter(x => x !== s) }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitError('');
+    if (!form.Name.trim()) { setSubmitError('Введите название'); return; }
+    if (!form.Category.trim()) { setSubmitError('Введите категорию'); return; }
+
+    const qty = parseInt(form.Quantity);
+    if (isNaN(qty) || qty < 0) { setSubmitError('Некорректное количество'); return; }
+
+    if (isEdit) {
+      updateMutation.mutate({
+        data: {
+          Name: form.Name, Category: form.Category, Description: form.Description,
+          Type: form.Type as EquipmentType,
+          DailyRate: form.DailyRate ? parseFloat(form.DailyRate) : undefined,
+          SalePrice: form.SalePrice ? parseFloat(form.SalePrice) : undefined,
+          Quantity: qty,
+        },
+      });
+    } else {
+      if (!form.DailyRate && (form.Type === 'rental' || form.Type === 'both')) { setSubmitError('Введите ставку аренды'); return; }
+      if (!form.SalePrice && (form.Type === 'sale' || form.Type === 'both')) { setSubmitError('Введите цену продажи'); return; }
+      createEquipment({
+        Name: form.Name, Category: form.Category, Description: form.Description,
+        Type: form.Type as 'rental' | 'sale' | 'both',
+        DailyRate: parseFloat(form.DailyRate) || 0,
+        SalePrice: parseFloat(form.SalePrice) || 0,
+        Quantity: qty,
+        Serials: form.Serials.length > 0 ? form.Serials : undefined,
+      }).then(() => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование добавлено!'); navigate('/equipment'); })
+        .catch((err: Error) => { setSubmitError(err.message); });
+    }
+  }
+
+  const busy = createMutation.isPending || updateMutation.isPending;
+  const showRental = form.Type === 'rental' || form.Type === 'both';
+  const showSale = form.Type === 'sale' || form.Type === 'both';
+
+  if (isLoading) return <LoadingCenter />;
+
+  return (
+    <div style={{ maxWidth: 680 }}>
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button className="btn btn-ghost btn-icon" onClick={() => navigate(isEdit ? `/equipment/${id}` : '/equipment')}>
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <div className="page-title">{isEdit ? 'Редактировать' : 'Добавить оборудование'}</div>
+            <div className="page-subtitle">{isEdit ? existing?.Name : 'Новая позиция в каталоге'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <form onSubmit={handleSubmit}>
+          <div className="card-body">
+            {submitError && <Alert type="error" className="mb-4">{submitError}</Alert>}
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label required">Название</label>
+                <input type="text" className="form-input" placeholder="Например: Дрель Bosch"
+                  value={form.Name} onChange={e => update('Name', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label required">Категория</label>
+                <input type="text" className="form-input" placeholder="Электроинструменты"
+                  value={form.Category} onChange={e => update('Category', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Описание</label>
+              <textarea className="form-input" placeholder="Краткое описание оборудования..."
+                value={form.Description} onChange={e => update('Description', e.target.value)} />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label required">Тип</label>
+                <select className="form-input form-select" value={form.Type} onChange={e => update('Type', e.target.value)}>
+                  <option value="rental">Только аренда</option>
+                  <option value="sale">Только продажа</option>
+                  <option value="both">Аренда и продажа</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label required">Количество единиц</label>
+                <input type="number" className="form-input" min="0" placeholder="1"
+                  value={form.Quantity} onChange={e => update('Quantity', e.target.value)} />
+              </div>
+            </div>
+
+            {showRental && (
+              <div className="form-group">
+                <label className="form-label required">Стоимость аренды в день</label>
+                <input type="number" className="form-input" placeholder="5000" min="0" step="0.01"
+                  value={form.DailyRate} onChange={e => update('DailyRate', e.target.value)} />
+              </div>
+            )}
+
+            {showSale && (
+              <div className="form-group">
+                <label className="form-label required">Цена продажи</label>
+                <input type="number" className="form-input" placeholder="50000" min="0" step="0.01"
+                  value={form.SalePrice} onChange={e => update('SalePrice', e.target.value)} />
+              </div>
+            )}
+
+            {!isEdit && (
+              <div className="form-group">
+                <label className="form-label">Серийные номера</label>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input
+                    type="text" className="form-input" placeholder="SN-001"
+                    value={serialInput} onChange={e => setSerialInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSerial(); } }}
+                  />
+                  <button type="button" className="btn btn-secondary" onClick={addSerial}>
+                    <Plus size={16} />
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {form.Serials.map(s => (
+                    <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)', borderRadius: 20, fontSize: 12 }}>
+                      {s}
+                      <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }} onClick={() => removeSerial(s)}>
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="form-hint">Нажмите Enter или кнопку + для добавления</div>
+              </div>
+            )}
+          </div>
+
+          <div className="card-footer">
+            <button type="button" className="btn btn-secondary" onClick={() => navigate(isEdit ? `/equipment/${id}` : '/equipment')}>
+              Отмена
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={busy}>
+              {busy && <Spinner size="sm" white />}
+              {busy ? 'Сохранение...' : isEdit ? 'Сохранить изменения' : 'Добавить оборудование'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
