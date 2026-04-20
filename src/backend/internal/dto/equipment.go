@@ -11,6 +11,7 @@ type EquipmentCreateRequest struct {
 	SalePrice	float64
 	Quantity	int
 	Serials 	[]string
+	Images		[]string
 }
 
 
@@ -22,11 +23,12 @@ type EquipmentUpdateRequest struct {
 	DailyRate	*float64
 	SalePrice	*float64
 	Quantity	*int
+	Images		[]string
 }
 
 
 type EquipmentResponse struct{
-	ID 			uint 
+	ID 			uint
 	Name 		string
 	Category	string
 	Description	string
@@ -34,6 +36,7 @@ type EquipmentResponse struct{
 	DailyRate	string
 	SalePrice	string
 	Quantity	int
+	Images		[]string
 	CreatedAt	time.Time
 	UpdatedAt	time.Time
 }
@@ -41,6 +44,6 @@ type EquipmentResponse struct{
 
 type EquipmentDetailResponse struct {
 	EquipmentResponse
-	AvailableUnits int      
-	Serials        []string 
+	AvailableUnits int
+	Serials        []string
 }

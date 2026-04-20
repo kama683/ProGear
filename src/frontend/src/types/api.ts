@@ -16,16 +16,16 @@ export interface LoginResponse { AccessToken: string; RefreshToken: string; User
 export interface Equipment {
   ID: number; Name: string; Category: string; Description: string;
   Type: EquipmentType; DailyRate: string; SalePrice: string;
-  Quantity: number; CreatedAt: string; UpdatedAt: string;
+  Quantity: number; Images: string[]; CreatedAt: string; UpdatedAt: string;
 }
 export interface EquipmentDetail extends Equipment { AvailableUnits: number; Serials: string[]; }
 export interface CreateEquipmentRequest {
   Name: string; Category: string; Description: string; Type: EquipmentType;
-  DailyRate: number; SalePrice: number; Quantity: number; Serials?: string[];
+  DailyRate: number; SalePrice: number; Quantity: number; Serials?: string[]; Images?: string[];
 }
 export interface UpdateEquipmentRequest {
   Name?: string; Category?: string; Description?: string; Type?: EquipmentType;
-  DailyRate?: number; SalePrice?: number; Quantity?: number;
+  DailyRate?: number; SalePrice?: number; Quantity?: number; Images?: string[];
 }
 
 export interface AvailabilityResponse {

@@ -85,6 +85,14 @@ func InitSchema(db *sql.DB) error {
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`,
 		`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS hourly_rate NUMERIC(12,2) NOT NULL DEFAULT 0;`,
 		`ALTER TABLE orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`,
+		`CREATE TABLE IF NOT EXISTS equipment_images (
+			id BIGSERIAL PRIMARY KEY,
+			equipment_id BIGINT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+			image_url TEXT NOT NULL,
+			position INTEGER NOT NULL DEFAULT 0,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_equipment_images_equipment_id ON equipment_images(equipment_id, position);`,
 	}
 
 	tx, err := db.Begin()

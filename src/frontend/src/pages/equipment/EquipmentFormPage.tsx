@@ -12,10 +12,10 @@ import type { EquipmentType } from '../../types/api';
 interface FormData {
   Name: string; Category: string; Description: string; Type: string;
   DailyRate: string; SalePrice: string; Quantity: string;
-  Serials: string[];
+  Serials: string[]; Images: string[];
 }
 
-const empty: FormData = { Name: '', Category: '', Description: '', Type: 'rental', DailyRate: '', SalePrice: '', Quantity: '1', Serials: [] };
+const empty: FormData = { Name: '', Category: '', Description: '', Type: 'rental', DailyRate: '', SalePrice: '', Quantity: '1', Serials: [], Images: [] };
 
 export function EquipmentFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +26,7 @@ export function EquipmentFormPage() {
 
   const [form, setForm] = useState<FormData>(empty);
   const [serialInput, setSerialInput] = useState('');
+  const [imageInput, setImageInput] = useState('');
   const [submitError, setSubmitError] = useState('');
 
   const { data: existing, isLoading } = useQuery({
@@ -40,6 +41,7 @@ export function EquipmentFormPage() {
         Name: existing.Name, Category: existing.Category, Description: existing.Description,
         Type: existing.Type, DailyRate: existing.DailyRate, SalePrice: existing.SalePrice,
         Quantity: String(existing.Quantity), Serials: existing.Serials ?? [],
+        Images: existing.Images ?? [],
       });
     }
   }, [existing, isEdit]);
@@ -71,6 +73,17 @@ export function EquipmentFormPage() {
     setForm(prev => ({ ...prev, Serials: prev.Serials.filter(x => x !== s) }));
   }
 
+  function addImage() {
+    const url = imageInput.trim();
+    if (!url || form.Images.includes(url)) return;
+    setForm(prev => ({ ...prev, Images: [...prev.Images, url] }));
+    setImageInput('');
+  }
+
+  function removeImage(url: string) {
+    setForm(prev => ({ ...prev, Images: prev.Images.filter(x => x !== url) }));
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError('');
@@ -88,6 +101,7 @@ export function EquipmentFormPage() {
           DailyRate: form.DailyRate ? parseFloat(form.DailyRate) : undefined,
           SalePrice: form.SalePrice ? parseFloat(form.SalePrice) : undefined,
           Quantity: qty,
+          Images: form.Images,
         },
       });
     } else {
@@ -100,6 +114,7 @@ export function EquipmentFormPage() {
         SalePrice: parseFloat(form.SalePrice) || 0,
         Quantity: qty,
         Serials: form.Serials.length > 0 ? form.Serials : undefined,
+        Images: form.Images.length > 0 ? form.Images : undefined,
       }).then(() => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование добавлено!'); navigate('/equipment'); })
         .catch((err: Error) => { setSubmitError(err.message); });
     }
@@ -207,6 +222,37 @@ export function EquipmentFormPage() {
                 <div className="form-hint">Нажмите Enter или кнопку + для добавления</div>
               </div>
             )}
+
+            <div className="form-group">
+              <label className="form-label">Фотографии товара</label>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="url" className="form-input" placeholder="https://example.com/photo.jpg"
+                  value={imageInput} onChange={e => setImageInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addImage(); } }}
+                />
+                <button type="button" className="btn btn-secondary" onClick={addImage}>
+                  <Plus size={16} />
+                </button>
+              </div>
+              {form.Images.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+                  {form.Images.map(url => (
+                    <div key={url} style={{ position: 'relative', width: 80, height: 80 }}>
+                      <img src={url} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--color-border)' }} />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(url)}
+                        style={{ position: 'absolute', top: -6, right: -6, background: 'var(--color-danger, #ef4444)', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="form-hint">Вставьте URL изображения и нажмите Enter или +</div>
+            </div>
           </div>
 
           <div className="card-footer">

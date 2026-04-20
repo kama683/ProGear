@@ -76,6 +76,7 @@ export function EquipmentListPage() {
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: 60 }}></th>
                 <th>Название</th>
                 <th>Категория</th>
                 <th>Тип</th>
@@ -88,6 +89,19 @@ export function EquipmentListPage() {
             <tbody>
               {filtered.map(eq => (
                 <tr key={eq.ID}>
+                  <td>
+                    {eq.Images && eq.Images.length > 0 ? (
+                      <img
+                        src={eq.Images[0]}
+                        alt={eq.Name}
+                        style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--color-border)', display: 'block' }}
+                      />
+                    ) : (
+                      <div style={{ width: 48, height: 48, borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-subtle, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
+                        <Package size={22} />
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{eq.Name}</div>
                     {eq.Description && <div className="text-xs text-muted" style={{ marginTop: 2 }}>{eq.Description.slice(0, 60)}{eq.Description.length > 60 ? '…' : ''}</div>}

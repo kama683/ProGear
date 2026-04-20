@@ -46,9 +46,29 @@ func (s *equipmentService) List(filterType, category string) ([]dto.EquipmentRes
 		); err != nil {
 			return nil, fmt.Errorf("scan equipment: %w", err)
 		}
+		e.Images = s.fetchImages(e.ID)
 		out = append(out, e)
 	}
 	return out, rows.Err()
+}
+
+func (s *equipmentService) fetchImages(equipmentID uint) []string {
+	rows, err := s.db.Query(
+		`SELECT image_url FROM equipment_images WHERE equipment_id = $1 ORDER BY position, id`,
+		equipmentID,
+	)
+	if err != nil {
+		return []string{}
+	}
+	defer rows.Close()
+	images := make([]string, 0)
+	for rows.Next() {
+		var url string
+		if rows.Scan(&url) == nil {
+			images = append(images, url)
+		}
+	}
+	return images
 }
 
 func (s *equipmentService) GetByID(id uint) (dto.EquipmentDetailResponse, error) {
@@ -86,6 +106,7 @@ func (s *equipmentService) GetByID(id uint) (dto.EquipmentDetailResponse, error)
 		serials = append(serials, serial)
 	}
 	e.Serials = serials
+	e.Images = s.fetchImages(id)
 
 	return e, nil
 }
@@ -132,14 +153,34 @@ func (s *equipmentService) Create(req dto.EquipmentCreateRequest) (dto.Equipment
 		}
 	}
 
+	for i, imageURL := range req.Images {
+		imageURL = strings.TrimSpace(imageURL)
+		if imageURL == "" {
+			continue
+		}
+		if _, err := tx.Exec(
+			`INSERT INTO equipment_images(equipment_id, image_url, position) VALUES($1,$2,$3)`,
+			out.ID, imageURL, i,
+		); err != nil {
+			return dto.EquipmentResponse{}, fmt.Errorf("create equipment image: %w", err)
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return dto.EquipmentResponse{}, err
 	}
+	out.Images = req.Images
 	return out, nil
 }
 
 func (s *equipmentService) Update(id uint, req dto.EquipmentUpdateRequest) (dto.EquipmentResponse, error) {
-	if _, err := s.db.Exec(`
+	tx, err := s.db.Begin()
+	if err != nil {
+		return dto.EquipmentResponse{}, err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`
 		UPDATE equipment SET
 			name        = COALESCE($2, name),
 			category    = COALESCE($3, category),
@@ -154,17 +195,39 @@ func (s *equipmentService) Update(id uint, req dto.EquipmentUpdateRequest) (dto.
 		return dto.EquipmentResponse{}, fmt.Errorf("update equipment: %w", err)
 	}
 
+	if req.Images != nil {
+		if _, err := tx.Exec(`DELETE FROM equipment_images WHERE equipment_id = $1`, id); err != nil {
+			return dto.EquipmentResponse{}, fmt.Errorf("delete old images: %w", err)
+		}
+		for i, imageURL := range req.Images {
+			imageURL = strings.TrimSpace(imageURL)
+			if imageURL == "" {
+				continue
+			}
+			if _, err := tx.Exec(
+				`INSERT INTO equipment_images(equipment_id, image_url, position) VALUES($1,$2,$3)`,
+				id, imageURL, i,
+			); err != nil {
+				return dto.EquipmentResponse{}, fmt.Errorf("insert image: %w", err)
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return dto.EquipmentResponse{}, err
+	}
+
 	var out dto.EquipmentResponse
-	err := s.db.QueryRow(`
+	if err := s.db.QueryRow(`
 		SELECT id, name, category, description, type, daily_rate, sale_price, quantity, created_at, updated_at
 		FROM equipment WHERE id = $1
 	`, id).Scan(
 		&out.ID, &out.Name, &out.Category, &out.Description, &out.Type,
 		&out.DailyRate, &out.SalePrice, &out.Quantity,
 		&out.CreatedAt, &out.UpdatedAt,
-	)
-	if err != nil {
+	); err != nil {
 		return dto.EquipmentResponse{}, fmt.Errorf("get equipment after update: %w", err)
 	}
+	out.Images = s.fetchImages(id)
 	return out, nil
 }
