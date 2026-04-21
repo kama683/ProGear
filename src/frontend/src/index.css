@@ -282,6 +282,21 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* ──────────── EQUIPMENT CARD ──────────── */
 .eq-type-badge { display: inline-flex; align-items: center; gap: 4px; }
+.eq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+.eq-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s, transform 0.2s; }
+.eq-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.eq-card-img { width: 100%; height: 200px; object-fit: cover; display: block; background: var(--color-surface-2); }
+.eq-card-img-placeholder { width: 100%; height: 200px; background: var(--color-surface-2); display: flex; align-items: center; justify-content: center; color: var(--color-text-light); border-bottom: 1px solid var(--color-border); }
+.eq-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.eq-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.eq-card-category { font-size: 11.5px; color: var(--color-text-muted); font-weight: 500; }
+.eq-card-name { font-size: 15px; font-weight: 700; color: var(--color-text); line-height: 1.3; }
+.eq-card-price { font-size: 16px; font-weight: 800; color: var(--color-primary); letter-spacing: -0.3px; }
+.eq-card-price-sub { font-size: 11px; color: var(--color-text-muted); font-weight: 500; }
+.eq-card-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-muted); }
+.eq-card-footer { padding: 12px 16px; border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
+.eq-section-title { font-size: 18px; font-weight: 800; color: var(--color-text); margin-bottom: 4px; }
+.eq-section-sub { font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px; }
 
 /* ──────────── RESPONSIVE ──────────── */
 @media (max-width: 768px) {
@@ -309,4 +324,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   .auth-card { padding: 28px 20px; }
   .toast-container { bottom: 16px; right: 16px; left: 16px; }
   .toast { max-width: 100%; }
+  .eq-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .eq-card-img, .eq-card-img-placeholder { height: 140px; }
+}
+@media (max-width: 360px) {
+  .eq-grid { grid-template-columns: 1fr; }
 }

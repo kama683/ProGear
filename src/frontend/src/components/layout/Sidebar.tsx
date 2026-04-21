@@ -46,7 +46,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <div className="sidebar-section">
               <div className="sidebar-section-title">Аренда</div>
               <NavLink to="/rentals" className={linkClass} onClick={onClose}>
-                <ShoppingCart size={16} /> Арендовать
+                <ShoppingCart size={16} /> Забронировать
               </NavLink>
             </div>
           )}
@@ -56,11 +56,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <NavLink to="/orders" className={linkClass} onClick={onClose}>
               <FileText size={16} /> Мои заказы
             </NavLink>
-            {isCustomer && (
-              <NavLink to="/orders/new" className={linkClass} onClick={onClose}>
-                <ShoppingCart size={16} /> Новый заказ
-              </NavLink>
-            )}
           </div>
 
           {canManageEquipment && (
