@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+!src/frontend/.env.development
+!src/frontend/.env.production
 dev.env
 
 # ── Backend (Go) ───────────────────────────────────────────────────

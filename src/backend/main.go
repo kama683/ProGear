@@ -44,9 +44,10 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000",
-		AllowHeaders: "Origin, Content-Type, Accept, Bearer",
-		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowOrigins:     "http://localhost:5173,http://localhost:3000,http://localhost:8080,https://progear-mu.vercel.app,https://progear-production.up.railway.app",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowCredentials: true,
 	}))
 	app.Static("/docs", "./docs")
 	app.Get("/swagger", func(c *fiber.Ctx) error {
