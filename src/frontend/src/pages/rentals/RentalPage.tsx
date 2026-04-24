@@ -49,7 +49,7 @@ export function RentalPage() {
       ]);
       setAvailability(avail); setCalcResult(calc);
     } catch (err: unknown) {
-      setCheckError(err instanceof Error ? err.message : 'Ошибка проверки');
+      setCheckError(err instanceof Error ? err.message : 'Check failed');
     } finally {
       setChecking(false);
     }
@@ -59,7 +59,7 @@ export function RentalPage() {
     mutationFn: bookRental,
     onSuccess: (res) => {
       setBooking(res);
-      success('Бронирование создано!', `ID брони: ${res.ReservationID}`);
+      success('Booking created!', `Booking ID: ${res.ReservationID}`);
       qc.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (err: Error) => setCheckError(err.message),
@@ -75,39 +75,39 @@ export function RentalPage() {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <CheckCircle size={32} color="var(--color-success)" />
             </div>
-            <h2 style={{ marginBottom: 8 }}>Бронирование подтверждено!</h2>
-            <p className="text-muted mb-4">Единица оборудования зарезервирована для вас</p>
+            <h2 style={{ marginBottom: 8 }}>Booking Confirmed!</h2>
+            <p className="text-muted mb-4">An equipment unit has been reserved for you</p>
 
             <div className="detail-grid" style={{ textAlign: 'left', marginBottom: 20 }}>
               <div className="detail-item">
-                <div className="detail-label">ID брони</div>
+                <div className="detail-label">Booking ID</div>
                 <div className="detail-value font-bold">#{booking.ReservationID}</div>
               </div>
               <div className="detail-item">
-                <div className="detail-label">Статус</div>
+                <div className="detail-label">Status</div>
                 <div className="detail-value" style={{ color: 'var(--color-primary)' }}>{booking.Status}</div>
               </div>
               <div className="detail-item">
-                <div className="detail-label">Начало</div>
+                <div className="detail-label">Start</div>
                 <div className="detail-value">{formatDateTime(booking.StartAt)}</div>
               </div>
               <div className="detail-item">
-                <div className="detail-label">Конец</div>
+                <div className="detail-label">End</div>
                 <div className="detail-value">{formatDateTime(booking.EndAt)}</div>
               </div>
             </div>
 
             <div style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)', borderRadius: 'var(--radius-lg)', padding: '16px 24px', marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 4 }}>РАСЧЁТНАЯ СТОИМОСТЬ</div>
+              <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 4 }}>ESTIMATED COST</div>
               <div className="price-large" style={{ color: 'var(--color-primary)' }}>{formatCurrency(booking.EstimatedCost)}</div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button className="btn btn-secondary" onClick={() => navigate('/orders/new', { state: { reservationId: booking.ReservationID, equipmentId: booking.EquipmentId } })}>
-                Оформить заказ
+                Create Order
               </button>
               <button className="btn btn-primary" onClick={() => navigate('/orders')}>
-                Мои заказы
+                My Orders
               </button>
             </div>
           </div>
@@ -122,44 +122,44 @@ export function RentalPage() {
     <div>
       <div className="page-header">
         <div>
-          <div className="page-title">Аренда оборудования</div>
-          <div className="page-subtitle">Проверьте доступность и забронируйте</div>
+          <div className="page-title">Equipment Rental</div>
+          <div className="page-subtitle">Check availability and book</div>
         </div>
       </div>
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="card">
-          <div className="card-header"><span className="card-title"><Calendar size={14} style={{ marginRight: 6 }} />Параметры аренды</span></div>
+          <div className="card-header"><span className="card-title"><Calendar size={14} style={{ marginRight: 6 }} />Rental Parameters</span></div>
           <div className="card-body">
             <div className="form-group">
-              <label className="form-label required">Оборудование</label>
+              <label className="form-label required">Equipment</label>
               <select className="form-input form-select" value={equipmentId} onChange={e => { setEquipmentId(e.target.value); setAvailability(null); setCalcResult(null); }}>
-                <option value="">Выберите оборудование...</option>
+                <option value="">Select equipment...</option>
                 {rentalEquipment.map(eq => (
                   <option key={eq.ID} value={eq.ID}>{eq.Name} ({eq.Category})</option>
                 ))}
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label required">Начало аренды</label>
+              <label className="form-label required">Rental Start</label>
               <input type="datetime-local" className="form-input" min={minStart}
                 value={startAt} onChange={e => { setStartAt(e.target.value); setAvailability(null); }} />
             </div>
             <div className="form-group">
-              <label className="form-label required">Конец аренды</label>
+              <label className="form-label required">Rental End</label>
               <input type="datetime-local" className="form-input" min={startAt || minStart}
                 value={endAt} onChange={e => { setEndAt(e.target.value); setAvailability(null); }} />
             </div>
             <div className="form-group">
-              <label className="form-label">Режим расчёта</label>
+              <label className="form-label">Calculation Mode</label>
               <select className="form-input form-select" value={mode} onChange={e => setMode(e.target.value as 'day' | 'hour')}>
-                <option value="day">По дням</option>
-                <option value="hour">По часам</option>
+                <option value="day">By Days</option>
+                <option value="hour">By Hours</option>
               </select>
             </div>
             <button className="btn btn-primary btn-full" onClick={handleCheck} disabled={checking || !equipmentId || !startAt || !endAt}>
               {checking ? <Spinner size="sm" white /> : <Calculator size={16} />}
-              {checking ? 'Проверяем...' : 'Проверить доступность'}
+              {checking ? 'Checking...' : 'Check Availability'}
             </button>
           </div>
         </div>
@@ -169,20 +169,20 @@ export function RentalPage() {
 
           {availability && (
             <div className="card mb-4">
-              <div className="card-header"><span className="card-title">Результат проверки</span></div>
+              <div className="card-header"><span className="card-title">Availability Result</span></div>
               <div className="card-body">
                 <Alert type={availability.Available ? 'success' : 'error'}>
                   {availability.Available
-                    ? `✓ Доступно ${availability.AvailableUnits} единиц(а) на выбранные даты`
-                    : '✗ На выбранные даты нет свободных единиц'}
+                    ? `✓ ${availability.AvailableUnits} unit(s) available for the selected dates`
+                    : '✗ No available units for the selected dates'}
                 </Alert>
 
                 {calcResult && availability.Available && (
                   <div style={{ marginTop: 16 }}>
                     <div style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)', borderRadius: 'var(--radius-lg)', padding: '20px', textAlign: 'center', marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 6 }}>РАСЧЁТНАЯ СТОИМОСТЬ</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 6 }}>ESTIMATED COST</div>
                       <div className="price-large" style={{ color: 'var(--color-primary)' }}>{formatCurrency(calcResult.Amount)}</div>
-                      <div className="text-xs text-muted mt-1">Режим: {mode === 'day' ? 'по дням' : 'по часам'}</div>
+                      <div className="text-xs text-muted mt-1">Mode: {mode === 'day' ? 'by days' : 'by hours'}</div>
                     </div>
 
                     <button
@@ -191,7 +191,7 @@ export function RentalPage() {
                       onClick={() => bookMutation.mutate({ EquipmentID: Number(equipmentId), StartAt: new Date(startAt).toISOString(), EndAt: new Date(endAt).toISOString() })}
                     >
                       {bookMutation.isPending ? <Spinner size="sm" white /> : null}
-                      {bookMutation.isPending ? 'Бронирование...' : 'Забронировать'}
+                      {bookMutation.isPending ? 'Booking...' : 'Book Now'}
                     </button>
                   </div>
                 )}
@@ -203,7 +203,7 @@ export function RentalPage() {
             <div className="card" style={{ background: 'var(--color-surface-2)' }}>
               <div className="card-body" style={{ textAlign: 'center', padding: 48 }}>
                 <Calendar size={32} style={{ color: 'var(--color-text-light)', marginBottom: 12 }} />
-                <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Выберите оборудование и даты,<br />затем нажмите «Проверить доступность»</div>
+                <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Select equipment and dates,<br />then click "Check Availability"</div>
               </div>
             </div>
           )}

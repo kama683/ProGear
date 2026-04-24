@@ -40,14 +40,14 @@ export function EquipmentDetailPage() {
       ]);
       setAvailability(avail); setCalcResult(calc);
     } catch (err: unknown) {
-      setCalcError(err instanceof Error ? err.message : 'Ошибка проверки');
+      setCalcError(err instanceof Error ? err.message : 'Check failed');
     } finally {
       setChecking(false);
     }
   }
 
   if (isLoading) return <LoadingCenter />;
-  if (!eq) return <Alert type="error">Оборудование не найдено</Alert>;
+  if (!eq) return <Alert type="error">Equipment not found</Alert>;
 
   const minStart = toLocalDatetimeInput(new Date());
 
@@ -65,7 +65,7 @@ export function EquipmentDetailPage() {
         </div>
         {canManageEquipment && (
           <button className="btn btn-secondary" onClick={() => navigate(`/equipment/${id}/edit`)}>
-            <Edit size={16} /> Редактировать
+            <Edit size={16} /> Edit
           </button>
         )}
       </div>
@@ -73,23 +73,23 @@ export function EquipmentDetailPage() {
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div>
           <div className="card mb-4">
-            <div className="card-header"><span className="card-title">Информация</span></div>
+            <div className="card-header"><span className="card-title">Information</span></div>
             <div className="card-body">
               <div className="detail-grid">
                 <div className="detail-item">
-                  <div className="detail-label">Тип</div>
+                  <div className="detail-label">Type</div>
                   <div className="detail-value"><Badge color={getEquipmentTypeColor(eq.Type)}>{getEquipmentTypeLabel(eq.Type)}</Badge></div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Категория</div>
+                  <div className="detail-label">Category</div>
                   <div className="detail-value">{eq.Category || '—'}</div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Кол-во единиц</div>
+                  <div className="detail-label">Total Units</div>
                   <div className="detail-value">{eq.Quantity}</div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Доступно сейчас</div>
+                  <div className="detail-label">Available Now</div>
                   <div className="detail-value">
                     <span style={{ color: eq.AvailableUnits > 0 ? 'var(--color-success)' : 'var(--color-danger)', fontWeight: 700 }}>
                       {eq.AvailableUnits}
@@ -98,29 +98,29 @@ export function EquipmentDetailPage() {
                 </div>
                 {(eq.Type === 'rental' || eq.Type === 'both') && (
                   <div className="detail-item">
-                    <div className="detail-label">Аренда/день</div>
+                    <div className="detail-label">Rental/day</div>
                     <div className="detail-value price">{formatCurrency(eq.DailyRate)}</div>
                   </div>
                 )}
                 {(eq.Type === 'sale' || eq.Type === 'both') && (
                   <div className="detail-item">
-                    <div className="detail-label">Цена продажи</div>
+                    <div className="detail-label">Sale Price</div>
                     <div className="detail-value price">{formatCurrency(eq.SalePrice)}</div>
                   </div>
                 )}
                 <div className="detail-item">
-                  <div className="detail-label">Добавлено</div>
+                  <div className="detail-label">Added</div>
                   <div className="detail-value">{formatDateTime(eq.CreatedAt)}</div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Обновлено</div>
+                  <div className="detail-label">Updated</div>
                   <div className="detail-value">{formatDateTime(eq.UpdatedAt)}</div>
                 </div>
               </div>
 
               {eq.Description && (
                 <div style={{ marginTop: 16 }}>
-                  <div className="detail-label" style={{ marginBottom: 6 }}>Описание</div>
+                  <div className="detail-label" style={{ marginBottom: 6 }}>Description</div>
                   <p style={{ fontSize: 14, color: 'var(--color-text)', lineHeight: 1.6 }}>{eq.Description}</p>
                 </div>
               )}
@@ -130,7 +130,7 @@ export function EquipmentDetailPage() {
           {eq.Serials && eq.Serials.length > 0 && (
             <div className="card">
               <div className="card-header">
-                <span className="card-title"><Hash size={14} style={{ marginRight: 6 }} />Серийные номера</span>
+                <span className="card-title"><Hash size={14} style={{ marginRight: 6 }} />Serial Numbers</span>
               </div>
               <div className="card-body" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {eq.Serials.map(s => (
@@ -143,27 +143,27 @@ export function EquipmentDetailPage() {
 
         {(eq.Type === 'rental' || eq.Type === 'both') && (
           <div className="card">
-            <div className="card-header"><span className="card-title"><Calendar size={14} style={{ marginRight: 6 }} />Проверить доступность</span></div>
+            <div className="card-header"><span className="card-title"><Calendar size={14} style={{ marginRight: 6 }} />Check Availability</span></div>
             <div className="card-body">
               <div className="form-group">
-                <label className="form-label required">Начало аренды</label>
+                <label className="form-label required">Rental Start</label>
                 <input type="datetime-local" className="form-input" min={minStart}
                   value={startAt} onChange={e => setStartAt(e.target.value)} />
               </div>
               <div className="form-group">
-                <label className="form-label required">Конец аренды</label>
+                <label className="form-label required">Rental End</label>
                 <input type="datetime-local" className="form-input" min={startAt || minStart}
                   value={endAt} onChange={e => setEndAt(e.target.value)} />
               </div>
               <div className="form-group">
-                <label className="form-label">Режим расчёта</label>
+                <label className="form-label">Calculation Mode</label>
                 <select className="form-input form-select" value={mode} onChange={e => setMode(e.target.value as 'day' | 'hour')}>
-                  <option value="day">По дням</option>
-                  <option value="hour">По часам</option>
+                  <option value="day">By Days</option>
+                  <option value="hour">By Hours</option>
                 </select>
               </div>
               <button className="btn btn-primary btn-full" onClick={handleCheck} disabled={checking || !startAt || !endAt}>
-                {checking ? 'Проверяем...' : 'Проверить'}
+                {checking ? 'Checking...' : 'Check'}
               </button>
 
               {calcError && <Alert type="error" className="mt-4">{calcError}</Alert>}
@@ -172,15 +172,15 @@ export function EquipmentDetailPage() {
                 <div className="mt-4">
                   <Alert type={availability.Available ? 'success' : 'error'}>
                     {availability.Available
-                      ? `Доступно ${availability.AvailableUnits} единиц`
-                      : 'Нет доступных единиц на эти даты'}
+                      ? `${availability.AvailableUnits} units available`
+                      : 'No available units for these dates'}
                   </Alert>
                   {calcResult && availability.Available && (
                     <div className="card mt-4" style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)' }}>
                       <div className="card-body" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 4 }}>РАСЧЁТНАЯ СТОИМОСТЬ</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 4 }}>ESTIMATED COST</div>
                         <div className="price-large" style={{ color: 'var(--color-primary)' }}>{formatCurrency(calcResult.Amount)}</div>
-                        <div className="text-xs text-muted mt-1">Режим: {mode === 'day' ? 'по дням' : 'по часам'}</div>
+                        <div className="text-xs text-muted mt-1">Mode: {mode === 'day' ? 'by days' : 'by hours'}</div>
                       </div>
                     </div>
                   )}
@@ -189,7 +189,7 @@ export function EquipmentDetailPage() {
                       className="btn btn-primary btn-full mt-4"
                       onClick={() => navigate('/rentals', { state: { equipmentId: Number(id), startAt, endAt, equipmentName: eq.Name } })}
                     >
-                      <Package size={16} /> Перейти к бронированию
+                      <Package size={16} /> Go to Booking
                     </button>
                   )}
                 </div>

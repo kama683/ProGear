@@ -18,13 +18,13 @@ export function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.Name || !form.Email || !form.Password || !form.ConfirmPassword) {
-      setError('Заполните все поля'); return;
+      setError('Please fill in all fields'); return;
     }
     if (form.Password !== form.ConfirmPassword) {
-      setError('Пароли не совпадают'); return;
+      setError('Passwords do not match'); return;
     }
     if (form.Password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов'); return;
+      setError('Password must be at least 6 characters'); return;
     }
     setLoading(true); setError('');
     try {
@@ -32,7 +32,7 @@ export function RegisterPage() {
       setSuccess(true);
       setTimeout(() => navigate('/login'), 1800);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export function RegisterPage() {
         <div className="auth-logo">
           <div className="auth-logo-text">Pro<span className="auth-logo-accent">Gear</span></div>
         </div>
-        <Alert type="success" className="mb-4">Аккаунт создан! Переход на страницу входа…</Alert>
+        <Alert type="success" className="mb-4">Account created! Redirecting to login…</Alert>
       </div>
     );
   }
@@ -53,18 +53,18 @@ export function RegisterPage() {
     <div className="auth-card">
       <div className="auth-logo">
         <div className="auth-logo-text">Pro<span className="auth-logo-accent">Gear</span></div>
-        <div className="auth-logo-sub">Аренда и продажа оборудования</div>
+        <div className="auth-logo-sub">Equipment Rental & Sales</div>
       </div>
 
-      <div className="auth-title">Регистрация</div>
-      <div className="auth-subtitle">Создайте новый аккаунт</div>
+      <div className="auth-title">Create Account</div>
+      <div className="auth-subtitle">Sign up for a new account</div>
 
       {error && <Alert type="error" className="mb-4">{error}</Alert>}
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label required">Имя</label>
-          <input type="text" className="form-input" placeholder="Иван Иванов"
+          <label className="form-label required">Full Name</label>
+          <input type="text" className="form-input" placeholder="John Smith"
             value={form.Name} onChange={e => update('Name', e.target.value)} autoFocus />
         </div>
         <div className="form-group">
@@ -74,12 +74,12 @@ export function RegisterPage() {
         </div>
         <div className="form-row">
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label required">Пароль</label>
+            <label className="form-label required">Password</label>
             <input type="password" className="form-input" placeholder="••••••••"
               value={form.Password} onChange={e => update('Password', e.target.value)} />
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label required">Повторите пароль</label>
+            <label className="form-label required">Confirm Password</label>
             <input type="password" className="form-input" placeholder="••••••••"
               value={form.ConfirmPassword} onChange={e => update('ConfirmPassword', e.target.value)} />
           </div>
@@ -87,14 +87,14 @@ export function RegisterPage() {
         <div style={{ marginTop: 16 }}>
           <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
             {loading ? <Spinner size="sm" white /> : null}
-            {loading ? 'Создание...' : 'Создать аккаунт'}
+            {loading ? 'Creating...' : 'Create Account'}
           </button>
         </div>
       </form>
 
       <div className="auth-footer">
-        Уже есть аккаунт?{' '}
-        <Link to="/login">Войти</Link>
+        Already have an account?{' '}
+        <Link to="/login">Sign In</Link>
       </div>
     </div>
   );

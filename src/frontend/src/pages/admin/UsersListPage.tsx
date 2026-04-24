@@ -24,42 +24,42 @@ export function UsersListPage() {
     <div>
       <div className="page-header">
         <div>
-          <div className="page-title">Пользователи</div>
-          <div className="page-subtitle">Все зарегистрированные пользователи системы</div>
+          <div className="page-title">Users</div>
+          <div className="page-subtitle">All registered system users</div>
         </div>
       </div>
 
       <div className="stat-grid mb-6">
         <div className="stat-card">
-          <div className="stat-card-label">Всего</div>
+          <div className="stat-card-label">Total</div>
           <div className="stat-card-value">{users.length}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-label">Администраторов</div>
+          <div className="stat-card-label">Administrators</div>
           <div className="stat-card-value">{byRole.admin}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-label">Менеджеров</div>
+          <div className="stat-card-label">Managers</div>
           <div className="stat-card-value">{byRole.manager}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-label">Клиентов</div>
+          <div className="stat-card-label">Customers</div>
           <div className="stat-card-value">{byRole.customer}</div>
         </div>
       </div>
 
       {error ? (
-        <div className="alert alert-error">Ошибка загрузки: {(error as Error).message}</div>
+        <div className="alert alert-error">Load error: {(error as Error).message}</div>
       ) : users.length === 0 ? (
-        <EmptyState icon={<Users size={24} />} title="Пользователей нет" description="Нет зарегистрированных пользователей" />
+        <EmptyState icon={<Users size={24} />} title="No users" description="No registered users" />
       ) : (
         <div className="table-wrapper">
           <table className="table">
             <thead>
               <tr>
-                <th>Пользователь</th>
+                <th>User</th>
                 <th>Email</th>
-                <th>Роль</th>
+                <th>Role</th>
                 <th>ID</th>
               </tr>
             </thead>

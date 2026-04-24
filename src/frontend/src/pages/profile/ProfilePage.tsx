@@ -26,20 +26,20 @@ export function ProfilePage() {
   const completedOrders = orders.filter(o => o.Status === 'completed').length;
 
   if (isLoading) return <LoadingCenter />;
-  if (!user) return <div className="alert alert-error">Не удалось загрузить профиль</div>;
+  if (!user) return <div className="alert alert-error">Failed to load profile</div>;
 
   return (
     <div style={{ maxWidth: 640 }}>
       <div className="page-header">
         <div>
-          <div className="page-title">Профиль</div>
-          <div className="page-subtitle">Информация о вашем аккаунте</div>
+          <div className="page-title">Profile</div>
+          <div className="page-subtitle">Your account information</div>
         </div>
       </div>
 
-      {error && <div className="alert alert-warning mb-4">Данные могут быть неактуальны</div>}
+      {error && <div className="alert alert-warning mb-4">Data may be outdated</div>}
 
-      {/* Аватар и имя */}
+      {/* Avatar and name */}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-body">
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -56,38 +56,38 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* Статистика */}
+      {/* Stats */}
       <div className="stat-grid" style={{ marginBottom: 16 }}>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <FileText size={16} color="var(--color-primary)" />
-            <div className="stat-card-label">Всего заказов</div>
+            <div className="stat-card-label">Total Orders</div>
           </div>
           <div className="stat-card-value">{totalOrders}</div>
-          <div className="stat-card-sub">за всё время</div>
+          <div className="stat-card-sub">all time</div>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <ShoppingCart size={16} color="var(--color-warning)" />
-            <div className="stat-card-label">Активные</div>
+            <div className="stat-card-label">Active</div>
           </div>
           <div className="stat-card-value">{activeOrders}</div>
-          <div className="stat-card-sub">в процессе</div>
+          <div className="stat-card-sub">in progress</div>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <CheckCircle size={16} color="var(--color-success)" />
-            <div className="stat-card-label">Завершённые</div>
+            <div className="stat-card-label">Completed</div>
           </div>
           <div className="stat-card-value">{completedOrders}</div>
-          <div className="stat-card-sub">выполнено</div>
+          <div className="stat-card-sub">done</div>
         </div>
       </div>
 
-      {/* Личные данные */}
+      {/* Personal details */}
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Личные данные</span>
+          <span className="card-title">Personal Details</span>
         </div>
         <div className="card-body">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -96,7 +96,7 @@ export function ProfilePage() {
                 <User size={18} color="var(--color-primary)" />
               </div>
               <div>
-                <div className="detail-label">Полное имя</div>
+                <div className="detail-label">Full Name</div>
                 <div className="detail-value">{user.Name}</div>
               </div>
             </div>
@@ -116,7 +116,7 @@ export function ProfilePage() {
                 <Shield size={18} color="var(--color-primary)" />
               </div>
               <div>
-                <div className="detail-label">Роль</div>
+                <div className="detail-label">Role</div>
                 <div className="detail-value">{getRoleLabel(user.Role)}</div>
               </div>
             </div>
@@ -126,14 +126,14 @@ export function ProfilePage() {
                 <span style={{ fontSize: 16, color: 'var(--color-primary)', fontWeight: 700 }}>#</span>
               </div>
               <div>
-                <div className="detail-label">ID пользователя</div>
+                <div className="detail-label">User ID</div>
                 <div className="detail-value">#{user.ID}</div>
               </div>
             </div>
           </div>
         </div>
         <div className="card-footer">
-          <div className="text-sm text-muted">Для изменения данных обратитесь к администратору</div>
+          <div className="text-sm text-muted">Contact an administrator to change your details</div>
         </div>
       </div>
     </div>

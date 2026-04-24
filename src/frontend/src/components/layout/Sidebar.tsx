@@ -28,58 +28,58 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       <aside className={`sidebar${open ? ' open' : ''}`}>
         <div className="sidebar-logo">
           <div className="sidebar-logo-text">Pro<span style={{ color: '#60a5fa' }}>Gear</span></div>
-          <div className="sidebar-logo-sub">Аренда и продажа оборудования</div>
+          <div className="sidebar-logo-sub">Equipment Rental & Sales</div>
         </div>
 
         <nav className="sidebar-nav">
           <div className="sidebar-section">
-            <div className="sidebar-section-title">Главное</div>
+            <div className="sidebar-section-title">Main</div>
             <NavLink to="/dashboard" className={linkClass} onClick={onClose}>
-              <LayoutDashboard size={16} /> Обзор
+              <LayoutDashboard size={16} /> Overview
             </NavLink>
             <NavLink to="/equipment" className={linkClass} onClick={onClose}>
-              <Package size={16} /> Оборудование
+              <Package size={16} /> Equipment
             </NavLink>
           </div>
 
           {isCustomer && (
             <div className="sidebar-section">
-              <div className="sidebar-section-title">Аренда</div>
+              <div className="sidebar-section-title">Rental</div>
               <NavLink to="/rentals" className={linkClass} onClick={onClose}>
-                <ShoppingCart size={16} /> Забронировать
+                <ShoppingCart size={16} /> Book Now
               </NavLink>
             </div>
           )}
 
           <div className="sidebar-section">
-            <div className="sidebar-section-title">Заказы</div>
+            <div className="sidebar-section-title">Orders</div>
             <NavLink to="/orders" className={linkClass} onClick={onClose}>
-              <FileText size={16} /> Мои заказы
+              <FileText size={16} /> My Orders
             </NavLink>
           </div>
 
           {canManageEquipment && (
             <div className="sidebar-section">
-              <div className="sidebar-section-title">Управление</div>
+              <div className="sidebar-section-title">Management</div>
               <NavLink to="/equipment/new" className={linkClass} onClick={onClose}>
-                <Package size={16} /> Добавить товар
+                <Package size={16} /> Add Item
               </NavLink>
             </div>
           )}
 
           {isAdmin && (
             <div className="sidebar-section">
-              <div className="sidebar-section-title">Администрирование</div>
+              <div className="sidebar-section-title">Administration</div>
               <NavLink to="/admin/users" className={linkClass} onClick={onClose}>
-                <Users size={16} /> Пользователи
+                <Users size={16} /> Users
               </NavLink>
             </div>
           )}
 
           <div className="sidebar-section">
-            <div className="sidebar-section-title">Аккаунт</div>
+            <div className="sidebar-section-title">Account</div>
             <NavLink to="/profile" className={linkClass} onClick={onClose}>
-              <User size={16} /> Профиль
+              <User size={16} /> Profile
             </NavLink>
           </div>
         </nav>
@@ -95,7 +95,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
           )}
           <button className="sidebar-link" onClick={handleLogout} style={{ color: '#f87171' }}>
-            <LogOut size={16} /> Выйти
+            <LogOut size={16} /> Log Out
           </button>
         </div>
       </aside>

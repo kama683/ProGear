@@ -1,20 +1,20 @@
 export function formatCurrency(value: number | string): string {
   const num = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(num);
 }
 
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—';
   try {
-    return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(dateStr));
+    return new Intl.DateTimeFormat('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(dateStr));
   } catch { return '—'; }
 }
 
 export function formatDateTime(dateStr: string | null | undefined): string {
   if (!dateStr) return '—';
   try {
-    return new Intl.DateTimeFormat('ru-RU', {
+    return new Intl.DateTimeFormat('en-US', {
       day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
     }).format(new Date(dateStr));
   } catch { return '—'; }
@@ -31,8 +31,8 @@ export function initials(name: string): string {
 
 export function getOrderStatusLabel(status: string): string {
   const map: Record<string, string> = {
-    reserved: 'Забронирован', checked_out: 'Выдан',
-    returned: 'Возвращён', completed: 'Завершён', cancelled: 'Отменён',
+    reserved: 'Reserved', checked_out: 'Checked Out',
+    returned: 'Returned', completed: 'Completed', cancelled: 'Cancelled',
   };
   return map[status] ?? status;
 }
@@ -46,7 +46,7 @@ export function getOrderStatusColor(status: string): string {
 }
 
 export function getEquipmentTypeLabel(type: string): string {
-  const map: Record<string, string> = { rental: 'Аренда', sale: 'Продажа', both: 'Аренда + Продажа' };
+  const map: Record<string, string> = { rental: 'Rental', sale: 'Sale', both: 'Rental + Sale' };
   return map[type] ?? type;
 }
 
@@ -56,7 +56,7 @@ export function getEquipmentTypeColor(type: string): string {
 }
 
 export function getRoleLabel(role: string): string {
-  const map: Record<string, string> = { admin: 'Администратор', manager: 'Менеджер', customer: 'Клиент' };
+  const map: Record<string, string> = { admin: 'Administrator', manager: 'Manager', customer: 'Customer' };
   return map[role] ?? role;
 }
 

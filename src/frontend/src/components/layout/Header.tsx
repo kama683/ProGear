@@ -2,21 +2,21 @@ import { Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 const titleMap: Record<string, string> = {
-  '/dashboard': 'Обзор',
-  '/equipment': 'Оборудование',
-  '/equipment/new': 'Добавить оборудование',
-  '/rentals': 'Аренда оборудования',
-  '/orders': 'Заказы',
-  '/orders/new': 'Создать заказ',
-  '/profile': 'Профиль',
-  '/admin/users': 'Управление пользователями',
+  '/dashboard': 'Overview',
+  '/equipment': 'Equipment',
+  '/equipment/new': 'Add Equipment',
+  '/rentals': 'Equipment Rental',
+  '/orders': 'Orders',
+  '/orders/new': 'Create Order',
+  '/profile': 'Profile',
+  '/admin/users': 'User Management',
 };
 
 function getTitle(pathname: string): string {
   if (titleMap[pathname]) return titleMap[pathname];
-  if (pathname.startsWith('/equipment/') && pathname.endsWith('/edit')) return 'Редактировать оборудование';
-  if (pathname.startsWith('/equipment/')) return 'Оборудование';
-  if (pathname.startsWith('/orders/')) return 'Детали заказа';
+  if (pathname.startsWith('/equipment/') && pathname.endsWith('/edit')) return 'Edit Equipment';
+  if (pathname.startsWith('/equipment/')) return 'Equipment';
+  if (pathname.startsWith('/orders/')) return 'Order Details';
   return 'ProGear';
 }
 
@@ -32,7 +32,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         onClick={onMenuClick}
         style={{ display: 'none' }}
         id="mobile-menu-btn"
-        aria-label="Меню"
+        aria-label="Menu"
       >
         <Menu size={20} />
       </button>

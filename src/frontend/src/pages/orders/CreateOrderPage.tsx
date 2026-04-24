@@ -42,10 +42,10 @@ export function CreateOrderPage() {
     mutationFn: createOrder,
     onSuccess: (order) => {
       qc.invalidateQueries({ queryKey: ['orders'] });
-      success('Заказ создан!', `Заказ #${order.ID} оформлен`);
+      success('Order created!', `Order #${order.ID} placed`);
       navigate(`/orders/${order.ID}`);
     },
-    onError: (err: Error) => { setSubmitError(err.message); toastError('Ошибка', err.message); },
+    onError: (err: Error) => { setSubmitError(err.message); toastError('Error', err.message); },
   });
 
   function addItem() {
@@ -70,11 +70,11 @@ export function CreateOrderPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError('');
-    if (items.length === 0) { setSubmitError('Добавьте хотя бы один товар'); return; }
+    if (items.length === 0) { setSubmitError('Add at least one item'); return; }
     for (const item of items) {
-      if (!item.EquipmentID) { setSubmitError('Выберите оборудование для каждой позиции'); return; }
+      if (!item.EquipmentID) { setSubmitError('Select equipment for each item'); return; }
       if (item.ItemType === 'rental' && !item.ReservationID && (!item.StartAt || !item.EndAt)) {
-        setSubmitError('Для аренды без брони укажите даты'); return;
+        setSubmitError('Specify dates for rentals without a booking'); return;
       }
     }
 
@@ -102,8 +102,8 @@ export function CreateOrderPage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="page-title">Создать заказ</div>
-            <div className="page-subtitle">Добавьте товары и оформите заказ</div>
+            <div className="page-title">Create Order</div>
+            <div className="page-subtitle">Add items and place your order</div>
           </div>
         </div>
       </div>
@@ -113,9 +113,9 @@ export function CreateOrderPage() {
 
         <div className="card mb-4">
           <div className="card-header">
-            <span className="card-title">Позиции заказа</span>
+            <span className="card-title">Order Items</span>
             <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>
-              <Plus size={14} /> Добавить
+              <Plus size={14} /> Add
             </button>
           </div>
           <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -127,7 +127,7 @@ export function CreateOrderPage() {
               return (
                 <div key={item._key} style={{ border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: 16, position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <span style={{ fontWeight: 600, fontSize: 13 }}>Позиция {idx + 1}</span>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>Item {idx + 1}</span>
                     {items.length > 1 && (
                       <button type="button" className="btn btn-ghost btn-sm btn-icon" onClick={() => removeItem(item._key)}>
                         <Trash2 size={14} />
@@ -137,47 +137,47 @@ export function CreateOrderPage() {
 
                   <div className="form-row">
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label required">Оборудование</label>
+                      <label className="form-label required">Equipment</label>
                       <select
                         className="form-input form-select"
                         value={item.EquipmentID || ''}
                         onChange={e => updateItem(item._key, { EquipmentID: Number(e.target.value), ItemType: 'rental' })}
                       >
-                        <option value="">Выберите...</option>
+                        <option value="">Select...</option>
                         {equipment.map(e => (
                           <option key={e.ID} value={e.ID}>{e.Name} ({getEquipmentTypeLabel(e.Type)})</option>
                         ))}
                       </select>
                     </div>
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label required">Тип</label>
+                      <label className="form-label required">Type</label>
                       <select
                         className="form-input form-select"
                         value={item.ItemType}
                         onChange={e => updateItem(item._key, { ItemType: e.target.value as ItemType })}
                       >
-                        {canRent && <option value="rental">Аренда</option>}
-                        {canSell && <option value="sale">Покупка</option>}
+                        {canRent && <option value="rental">Rental</option>}
+                        {canSell && <option value="sale">Purchase</option>}
                       </select>
                     </div>
                   </div>
 
                   <div className="form-row mt-2">
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label required">Количество</label>
+                      <label className="form-label required">Quantity</label>
                       <input type="number" className="form-input" min="1" value={item.Quantity}
                         onChange={e => updateItem(item._key, { Quantity: Number(e.target.value) })} />
                     </div>
                     {item.ItemType === 'rental' && !item.ReservationID && (
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">ID брони (если есть)</label>
-                        <input type="number" className="form-input" placeholder="Необязательно"
+                        <label className="form-label">Booking ID (if any)</label>
+                        <input type="number" className="form-input" placeholder="Optional"
                           onChange={e => updateItem(item._key, { ReservationID: e.target.value ? Number(e.target.value) : undefined })} />
                       </div>
                     )}
                     {item.ReservationID && (
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">ID брони</label>
+                        <label className="form-label">Booking ID</label>
                         <div style={{ padding: '9px 12px', background: 'var(--color-success-light)', border: '1.5px solid var(--color-success-border)', borderRadius: 'var(--radius)', fontSize: 14, fontWeight: 600 }}>
                           #{item.ReservationID}
                         </div>
@@ -188,12 +188,12 @@ export function CreateOrderPage() {
                   {item.ItemType === 'rental' && !item.ReservationID && (
                     <div className="form-row mt-2">
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Начало аренды</label>
+                        <label className="form-label">Rental Start</label>
                         <input type="datetime-local" className="form-input" min={now}
                           value={item.StartAt ?? ''} onChange={e => updateItem(item._key, { StartAt: e.target.value || undefined })} />
                       </div>
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Конец аренды</label>
+                        <label className="form-label">Rental End</label>
                         <input type="datetime-local" className="form-input" min={item.StartAt ?? now}
                           value={item.EndAt ?? ''} onChange={e => updateItem(item._key, { EndAt: e.target.value || undefined })} />
                       </div>
@@ -203,10 +203,10 @@ export function CreateOrderPage() {
                   {eq && (
                     <div className="mt-2 text-sm text-muted">
                       {item.ItemType === 'rental' && (eq.Type === 'rental' || eq.Type === 'both') && (
-                        <span>Аренда: <strong>{formatCurrency(eq.DailyRate)}/день</strong></span>
+                        <span>Rental: <strong>{formatCurrency(eq.DailyRate)}/day</strong></span>
                       )}
                       {item.ItemType === 'sale' && (eq.Type === 'sale' || eq.Type === 'both') && (
-                        <span>Цена: <strong>{formatCurrency(eq.SalePrice)}</strong></span>
+                        <span>Price: <strong>{formatCurrency(eq.SalePrice)}</strong></span>
                       )}
                     </div>
                   )}
@@ -219,14 +219,14 @@ export function CreateOrderPage() {
         <div className="card">
           <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div className="text-muted text-sm">Расчётная сумма</div>
+              <div className="text-muted text-sm">Estimated Amount</div>
               <div className="price-large">{formatCurrency(totalAmount)}</div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" className="btn btn-secondary" onClick={() => navigate('/orders')}>Отмена</button>
+              <button type="button" className="btn btn-secondary" onClick={() => navigate('/orders')}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={mutation.isPending}>
                 {mutation.isPending ? <Spinner size="sm" white /> : null}
-                {mutation.isPending ? 'Создание...' : 'Создать заказ'}
+                {mutation.isPending ? 'Creating...' : 'Create Order'}
               </button>
             </div>
           </div>

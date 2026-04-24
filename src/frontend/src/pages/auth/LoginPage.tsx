@@ -15,7 +15,7 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) { setError('Заполните все поля'); return; }
+    if (!email || !password) { setError('Please fill in all fields'); return; }
     setLoading(true);
     setError('');
     try {
@@ -23,7 +23,7 @@ export function LoginPage() {
       setUser(res.User);
       navigate('/dashboard');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Ошибка входа');
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -33,11 +33,11 @@ export function LoginPage() {
     <div className="auth-card">
       <div className="auth-logo">
         <div className="auth-logo-text">Pro<span className="auth-logo-accent">Gear</span></div>
-        <div className="auth-logo-sub">Аренда и продажа оборудования</div>
+        <div className="auth-logo-sub">Equipment Rental & Sales</div>
       </div>
 
-      <div className="auth-title">Добро пожаловать</div>
-      <div className="auth-subtitle">Войдите в свой аккаунт</div>
+      <div className="auth-title">Welcome back</div>
+      <div className="auth-subtitle">Sign in to your account</div>
 
       {error && <Alert type="error" className="mb-4">{error}</Alert>}
 
@@ -52,7 +52,7 @@ export function LoginPage() {
           />
         </div>
         <div className="form-group">
-          <label className="form-label required">Пароль</label>
+          <label className="form-label required">Password</label>
           <input
             type="password" className="form-input"
             placeholder="••••••••"
@@ -62,13 +62,13 @@ export function LoginPage() {
         </div>
         <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
           {loading ? <Spinner size="sm" white /> : null}
-          {loading ? 'Вход...' : 'Войти'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
       <div className="auth-footer">
-        Нет аккаунта?{' '}
-        <Link to="/register">Зарегистрироваться</Link>
+        Don't have an account?{' '}
+        <Link to="/register">Register</Link>
       </div>
     </div>
   );

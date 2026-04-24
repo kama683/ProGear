@@ -43,10 +43,10 @@ export function OrderDetailPage() {
     mutationFn: (status: OrderStatus) => updateOrderStatus(Number(id), { Status: status }),
     onSuccess: (updated) => {
       qc.setQueryData(['orders'], (prev: typeof orders) => prev.map(o => o.ID === updated.ID ? updated : o));
-      success('Статус обновлён', `Заказ #${id} → ${getOrderStatusLabel(updated.Status)}`);
+      success('Status updated', `Order #${id} → ${getOrderStatusLabel(updated.Status)}`);
       setConfirmStatus(null);
     },
-    onError: (err: Error) => { toastError('Ошибка', err.message); setConfirmStatus(null); },
+    onError: (err: Error) => { toastError('Error', err.message); setConfirmStatus(null); },
   });
 
   async function handleGetInvoice() {
@@ -55,14 +55,14 @@ export function OrderDetailPage() {
       const inv = await getInvoice(Number(id));
       setInvoiceData(inv); setInvoiceOpen(true);
     } catch (err: unknown) {
-      toastError('Ошибка', err instanceof Error ? err.message : 'Не удалось получить инвойс');
+      toastError('Error', err instanceof Error ? err.message : 'Failed to get invoice');
     } finally {
       setLoadingInvoice(false);
     }
   }
 
   if (isLoading) return <LoadingCenter />;
-  if (!order) return <Alert type="error">Заказ не найден</Alert>;
+  if (!order) return <Alert type="error">Order not found</Alert>;
 
   const nextStatuses = NEXT_STATUS[order.Status] ?? [];
   const isCancelled = order.Status === 'cancelled';
@@ -76,14 +76,14 @@ export function OrderDetailPage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="page-title">Заказ #{order.ID}</div>
+            <div className="page-title">Order #{order.ID}</div>
             <div className="page-subtitle">{formatDateTime(order.CreatedAt)}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary" onClick={handleGetInvoice} disabled={loadingInvoice}>
             {loadingInvoice ? <Spinner size="sm" /> : <FileText size={16} />}
-            Инвойс
+            Invoice
           </button>
         </div>
       </div>
@@ -92,29 +92,29 @@ export function OrderDetailPage() {
         <div>
           <div className="card mb-4">
             <div className="card-header">
-              <span className="card-title">Информация о заказе</span>
+              <span className="card-title">Order Information</span>
               <Badge color={getOrderStatusColor(order.Status)}>{getOrderStatusLabel(order.Status)}</Badge>
             </div>
             <div className="card-body">
               <div className="detail-grid">
                 <div className="detail-item">
-                  <div className="detail-label">Тип заказа</div>
+                  <div className="detail-label">Order Type</div>
                   <div className="detail-value">
                     <Badge color={order.OrderType === 'rental' ? 'badge-blue' : order.OrderType === 'sale' ? 'badge-green' : 'badge-purple'}>
-                      {order.OrderType === 'rental' ? 'Аренда' : order.OrderType === 'sale' ? 'Продажа' : 'Смешанный'}
+                      {order.OrderType === 'rental' ? 'Rental' : order.OrderType === 'sale' ? 'Sale' : 'Mixed'}
                     </Badge>
                   </div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Сумма</div>
+                  <div className="detail-label">Amount</div>
                   <div className="detail-value price" style={{ fontSize: 18 }}>{formatCurrency(order.TotalAmount)}</div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Дата создания</div>
+                  <div className="detail-label">Created</div>
                   <div className="detail-value">{formatDateTime(order.CreatedAt)}</div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">Позиций</div>
+                  <div className="detail-label">Items</div>
                   <div className="detail-value">{order.Items?.length ?? 0}</div>
                 </div>
               </div>
@@ -123,16 +123,16 @@ export function OrderDetailPage() {
 
           {order.Items && order.Items.length > 0 && (
             <div className="card">
-              <div className="card-header"><span className="card-title">Позиции заказа</span></div>
+              <div className="card-header"><span className="card-title">Order Items</span></div>
               <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
                 <table className="table">
-                  <thead><tr><th>Тип</th><th>Оборудование</th><th>Кол-во</th><th>Цена</th><th>Итого</th></tr></thead>
+                  <thead><tr><th>Type</th><th>Equipment</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
                   <tbody>
                     {order.Items.map(item => (
                       <tr key={item.ID}>
                         <td>
                           <Badge color={item.ItemType === 'rental' ? 'badge-blue' : 'badge-green'}>
-                            {item.ItemType === 'rental' ? 'Аренда' : 'Продажа'}
+                            {item.ItemType === 'rental' ? 'Rental' : 'Sale'}
                           </Badge>
                         </td>
                         <td>
@@ -148,7 +148,7 @@ export function OrderDetailPage() {
                 </table>
               </div>
               <div className="card-footer" style={{ justifyContent: 'space-between' }}>
-                <span className="text-muted">Итого</span>
+                <span className="text-muted">Total</span>
                 <span className="font-bold" style={{ fontSize: 16 }}>{formatCurrency(order.TotalAmount)}</span>
               </div>
             </div>
@@ -157,7 +157,7 @@ export function OrderDetailPage() {
 
         <div>
           <div className="card mb-4">
-            <div className="card-header"><span className="card-title">Статус заказа</span></div>
+            <div className="card-header"><span className="card-title">Order Status</span></div>
             <div className="card-body">
               <div className="order-status-flow">
                 {STATUS_FLOW.map((s, i) => {
@@ -177,7 +177,7 @@ export function OrderDetailPage() {
                 {isCancelled && (
                   <div className="order-status-step cancelled">
                     <div className="order-status-dot" />
-                    Отменён
+                    Cancelled
                   </div>
                 )}
               </div>
@@ -186,7 +186,7 @@ export function OrderDetailPage() {
 
           {canManageOrders && !isCompleted && nextStatuses.length > 0 && (
             <div className="card">
-              <div className="card-header"><span className="card-title">Обновить статус</span></div>
+              <div className="card-header"><span className="card-title">Update Status</span></div>
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {nextStatuses.map(status => (
                   <button
@@ -194,7 +194,7 @@ export function OrderDetailPage() {
                     className={`btn btn-full ${status === 'cancelled' ? 'btn-danger' : 'btn-primary'}`}
                     onClick={() => setConfirmStatus(status)}
                   >
-                    Перевести в «{getOrderStatusLabel(status)}»
+                    Move to "{getOrderStatusLabel(status)}"
                   </button>
                 ))}
               </div>
@@ -206,41 +206,41 @@ export function OrderDetailPage() {
       <Modal
         open={!!confirmStatus}
         onClose={() => setConfirmStatus(null)}
-        title="Подтвердите действие"
+        title="Confirm Action"
         size="sm"
         footer={
           <>
-            <button className="btn btn-secondary" onClick={() => setConfirmStatus(null)}>Отмена</button>
+            <button className="btn btn-secondary" onClick={() => setConfirmStatus(null)}>Cancel</button>
             <button
               className={`btn ${confirmStatus === 'cancelled' ? 'btn-danger' : 'btn-primary'}`}
               disabled={statusMutation.isPending}
               onClick={() => confirmStatus && statusMutation.mutate(confirmStatus)}
             >
               {statusMutation.isPending ? <Spinner size="sm" white /> : null}
-              Подтвердить
+              Confirm
             </button>
           </>
         }
       >
-        <p>Вы уверены, что хотите изменить статус заказа <strong>#{id}</strong> на <strong>«{confirmStatus ? getOrderStatusLabel(confirmStatus) : ''}»</strong>?</p>
-        {confirmStatus === 'cancelled' && <Alert type="warning" className="mt-4">Это действие необратимо.</Alert>}
+        <p>Are you sure you want to change the status of order <strong>#{id}</strong> to <strong>"{confirmStatus ? getOrderStatusLabel(confirmStatus) : ''}"</strong>?</p>
+        {confirmStatus === 'cancelled' && <Alert type="warning" className="mt-4">This action is irreversible.</Alert>}
       </Modal>
 
-      <Modal open={invoiceOpen} onClose={() => setInvoiceOpen(false)} title="Инвойс" size="md">
+      <Modal open={invoiceOpen} onClose={() => setInvoiceOpen(false)} title="Invoice" size="md">
         {invoiceData && (
           <div className="invoice-box">
             <div className="invoice-header">
               <div>
-                <div className="invoice-number">Инвойс</div>
+                <div className="invoice-number">Invoice</div>
                 <div className="invoice-number"><strong>{invoiceData.InvoiceNumber}</strong></div>
-                <div className="text-sm text-muted mt-1">Выставлен: {formatDateTime(invoiceData.IssuedAt)}</div>
+                <div className="text-sm text-muted mt-1">Issued: {formatDateTime(invoiceData.IssuedAt)}</div>
               </div>
               <div className="invoice-total">
-                <div className="invoice-total-label">Сумма к оплате</div>
+                <div className="invoice-total-label">Amount Due</div>
                 <div className="invoice-total-amount">{formatCurrency(invoiceData.Amount)}</div>
                 <div className="mt-1">
                   <Badge color={invoiceData.InvoiceStatus === 'paid' ? 'badge-green' : 'badge-yellow'}>
-                    {invoiceData.InvoiceStatus === 'paid' ? 'Оплачен' : 'Не оплачен'}
+                    {invoiceData.InvoiceStatus === 'paid' ? 'Paid' : 'Unpaid'}
                   </Badge>
                 </div>
               </div>
@@ -248,12 +248,12 @@ export function OrderDetailPage() {
             <div className="divider" />
             <div className="detail-grid">
               <div className="detail-item">
-                <div className="detail-label">Заказ</div>
+                <div className="detail-label">Order</div>
                 <div className="detail-value font-bold">#{invoiceData.OrderID}</div>
               </div>
               <div className="detail-item">
-                <div className="detail-label">Статус</div>
-                <div className="detail-value">{invoiceData.InvoiceStatus === 'paid' ? 'Оплачен' : 'Ожидает оплаты'}</div>
+                <div className="detail-label">Status</div>
+                <div className="detail-value">{invoiceData.InvoiceStatus === 'paid' ? 'Paid' : 'Awaiting Payment'}</div>
               </div>
             </div>
           </div>

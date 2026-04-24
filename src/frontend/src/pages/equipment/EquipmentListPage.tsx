@@ -31,12 +31,12 @@ export function EquipmentListPage() {
     <div>
       <div className="page-header">
         <div>
-          <div className="page-title">Оборудование</div>
-          <div className="page-subtitle">Каталог оборудования для аренды и продажи</div>
+          <div className="page-title">Equipment</div>
+          <div className="page-subtitle">Equipment catalog for rental and sale</div>
         </div>
         {canManageEquipment && (
           <button className="btn btn-primary" onClick={() => navigate('/equipment/new')}>
-            <Plus size={16} /> Добавить
+            <Plus size={16} /> Add
           </button>
         )}
       </div>
@@ -46,28 +46,28 @@ export function EquipmentListPage() {
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
           <input
             className="form-input" style={{ paddingLeft: 32, padding: '6px 12px 6px 32px' }}
-            placeholder="Поиск по названию, категории..."
+            placeholder="Search by name, category..."
             value={search} onChange={e => setSearch(e.target.value)}
           />
         </div>
         <select className="filter-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-          <option value="">Все типы</option>
-          <option value="rental">Аренда</option>
-          <option value="sale">Продажа</option>
-          <option value="both">Аренда + Продажа</option>
+          <option value="">All Types</option>
+          <option value="rental">Rental</option>
+          <option value="sale">Sale</option>
+          <option value="both">Rental + Sale</option>
         </select>
       </div>
 
       {error ? (
-        <div className="alert alert-error">Ошибка загрузки: {(error as Error).message}</div>
+        <div className="alert alert-error">Load error: {(error as Error).message}</div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Package size={24} />}
-          title="Оборудование не найдено"
-          description={search || typeFilter ? 'Попробуйте изменить фильтры' : 'Каталог пока пуст'}
+          title="No equipment found"
+          description={search || typeFilter ? 'Try adjusting the filters' : 'The catalog is empty'}
           action={canManageEquipment ? (
             <button className="btn btn-primary" onClick={() => navigate('/equipment/new')}>
-              <Plus size={16} /> Добавить оборудование
+              <Plus size={16} /> Add Equipment
             </button>
           ) : undefined}
         />
@@ -99,19 +99,19 @@ export function EquipmentListPage() {
                   {(eq.Type === 'rental' || eq.Type === 'both') && (
                     <div>
                       <span className="eq-card-price">{formatCurrency(eq.DailyRate)}</span>
-                      <span className="eq-card-price-sub"> / день</span>
+                      <span className="eq-card-price-sub"> / day</span>
                     </div>
                   )}
                   {(eq.Type === 'sale' || eq.Type === 'both') && (
                     <div>
                       <span className="eq-card-price">{formatCurrency(eq.SalePrice)}</span>
-                      <span className="eq-card-price-sub"> цена</span>
+                      <span className="eq-card-price-sub"> price</span>
                     </div>
                   )}
                 </div>
                 <div className="eq-card-status">
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: eq.Quantity > 0 ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-block' }} />
-                  {eq.Quantity > 0 ? `В наличии: ${eq.Quantity} шт.` : 'Нет в наличии'}
+                  {eq.Quantity > 0 ? `In stock: ${eq.Quantity} units` : 'Out of stock'}
                 </div>
               </div>
               <div className="eq-card-footer" style={{ display: 'flex', gap: 8 }}>
@@ -120,12 +120,12 @@ export function EquipmentListPage() {
                   style={{ flex: 1 }}
                   onClick={() => navigate(`/equipment/${eq.ID}`)}
                 >
-                  Подробнее
+                  View Details
                 </button>
                 {canManageEquipment && (
                   <button
                     className="btn btn-secondary btn-sm btn-icon"
-                    title="Редактировать"
+                    title="Edit"
                     onClick={() => navigate(`/equipment/${eq.ID}/edit`)}
                   >
                     <Edit size={15} />

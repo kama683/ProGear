@@ -48,14 +48,14 @@ export function EquipmentFormPage() {
 
   const createMutation = useMutation({
     mutationFn: createEquipment,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование добавлено!'); navigate('/equipment'); },
-    onError: (err: Error) => { setSubmitError(err.message); toastError('Ошибка', err.message); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Equipment added!'); navigate('/equipment'); },
+    onError: (err: Error) => { setSubmitError(err.message); toastError('Error', err.message); },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ data }: { data: Parameters<typeof updateEquipment>[1] }) => updateEquipment(Number(id), data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование обновлено!'); navigate(`/equipment/${id}`); },
-    onError: (err: Error) => { setSubmitError(err.message); toastError('Ошибка', err.message); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Equipment updated!'); navigate(`/equipment/${id}`); },
+    onError: (err: Error) => { setSubmitError(err.message); toastError('Error', err.message); },
   });
 
   function update(field: keyof FormData, value: string) {
@@ -87,11 +87,11 @@ export function EquipmentFormPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError('');
-    if (!form.Name.trim()) { setSubmitError('Введите название'); return; }
-    if (!form.Category.trim()) { setSubmitError('Введите категорию'); return; }
+    if (!form.Name.trim()) { setSubmitError('Enter a name'); return; }
+    if (!form.Category.trim()) { setSubmitError('Enter a category'); return; }
 
     const qty = parseInt(form.Quantity);
-    if (isNaN(qty) || qty < 0) { setSubmitError('Некорректное количество'); return; }
+    if (isNaN(qty) || qty < 0) { setSubmitError('Invalid quantity'); return; }
 
     if (isEdit) {
       updateMutation.mutate({
@@ -105,8 +105,8 @@ export function EquipmentFormPage() {
         },
       });
     } else {
-      if (!form.DailyRate && (form.Type === 'rental' || form.Type === 'both')) { setSubmitError('Введите ставку аренды'); return; }
-      if (!form.SalePrice && (form.Type === 'sale' || form.Type === 'both')) { setSubmitError('Введите цену продажи'); return; }
+      if (!form.DailyRate && (form.Type === 'rental' || form.Type === 'both')) { setSubmitError('Enter the rental rate'); return; }
+      if (!form.SalePrice && (form.Type === 'sale' || form.Type === 'both')) { setSubmitError('Enter the sale price'); return; }
       createEquipment({
         Name: form.Name, Category: form.Category, Description: form.Description,
         Type: form.Type as 'rental' | 'sale' | 'both',
@@ -115,7 +115,7 @@ export function EquipmentFormPage() {
         Quantity: qty,
         Serials: form.Serials.length > 0 ? form.Serials : undefined,
         Images: form.Images.length > 0 ? form.Images : undefined,
-      }).then(() => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Оборудование добавлено!'); navigate('/equipment'); })
+      }).then(() => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Equipment added!'); navigate('/equipment'); })
         .catch((err: Error) => { setSubmitError(err.message); });
     }
   }
@@ -134,8 +134,8 @@ export function EquipmentFormPage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="page-title">{isEdit ? 'Редактировать' : 'Добавить оборудование'}</div>
-            <div className="page-subtitle">{isEdit ? existing?.Name : 'Новая позиция в каталоге'}</div>
+            <div className="page-title">{isEdit ? 'Edit Equipment' : 'Add Equipment'}</div>
+            <div className="page-subtitle">{isEdit ? existing?.Name : 'New catalog item'}</div>
           </div>
         </div>
       </div>
@@ -147,34 +147,34 @@ export function EquipmentFormPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label required">Название</label>
-                <input type="text" className="form-input" placeholder="Например: Дрель Bosch"
+                <label className="form-label required">Name</label>
+                <input type="text" className="form-input" placeholder="e.g. Bosch Drill"
                   value={form.Name} onChange={e => update('Name', e.target.value)} />
               </div>
               <div className="form-group">
-                <label className="form-label required">Категория</label>
-                <input type="text" className="form-input" placeholder="Электроинструменты"
+                <label className="form-label required">Category</label>
+                <input type="text" className="form-input" placeholder="Power Tools"
                   value={form.Category} onChange={e => update('Category', e.target.value)} />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Описание</label>
-              <textarea className="form-input" placeholder="Краткое описание оборудования..."
+              <label className="form-label">Description</label>
+              <textarea className="form-input" placeholder="Brief description of the equipment..."
                 value={form.Description} onChange={e => update('Description', e.target.value)} />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label required">Тип</label>
+                <label className="form-label required">Type</label>
                 <select className="form-input form-select" value={form.Type} onChange={e => update('Type', e.target.value)}>
-                  <option value="rental">Только аренда</option>
-                  <option value="sale">Только продажа</option>
-                  <option value="both">Аренда и продажа</option>
+                  <option value="rental">Rental Only</option>
+                  <option value="sale">Sale Only</option>
+                  <option value="both">Rental & Sale</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label required">Количество единиц</label>
+                <label className="form-label required">Quantity</label>
                 <input type="number" className="form-input" min="0" placeholder="1"
                   value={form.Quantity} onChange={e => update('Quantity', e.target.value)} />
               </div>
@@ -182,7 +182,7 @@ export function EquipmentFormPage() {
 
             {showRental && (
               <div className="form-group">
-                <label className="form-label required">Стоимость аренды в день</label>
+                <label className="form-label required">Daily Rental Rate</label>
                 <input type="number" className="form-input" placeholder="5000" min="0" step="0.01"
                   value={form.DailyRate} onChange={e => update('DailyRate', e.target.value)} />
               </div>
@@ -190,7 +190,7 @@ export function EquipmentFormPage() {
 
             {showSale && (
               <div className="form-group">
-                <label className="form-label required">Цена продажи</label>
+                <label className="form-label required">Sale Price</label>
                 <input type="number" className="form-input" placeholder="50000" min="0" step="0.01"
                   value={form.SalePrice} onChange={e => update('SalePrice', e.target.value)} />
               </div>
@@ -198,7 +198,7 @@ export function EquipmentFormPage() {
 
             {!isEdit && (
               <div className="form-group">
-                <label className="form-label">Серийные номера</label>
+                <label className="form-label">Serial Numbers</label>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   <input
                     type="text" className="form-input" placeholder="SN-001"
@@ -219,12 +219,12 @@ export function EquipmentFormPage() {
                     </span>
                   ))}
                 </div>
-                <div className="form-hint">Нажмите Enter или кнопку + для добавления</div>
+                <div className="form-hint">Press Enter or click + to add</div>
               </div>
             )}
 
             <div className="form-group">
-              <label className="form-label">Фотографии товара</label>
+              <label className="form-label">Product Photos</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <input
                   type="url" className="form-input" placeholder="https://example.com/photo.jpg"
@@ -251,17 +251,17 @@ export function EquipmentFormPage() {
                   ))}
                 </div>
               )}
-              <div className="form-hint">Вставьте URL изображения и нажмите Enter или +</div>
+              <div className="form-hint">Paste an image URL and press Enter or +</div>
             </div>
           </div>
 
           <div className="card-footer">
             <button type="button" className="btn btn-secondary" onClick={() => navigate(isEdit ? `/equipment/${id}` : '/equipment')}>
-              Отмена
+              Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy}>
               {busy && <Spinner size="sm" white />}
-              {busy ? 'Сохранение...' : isEdit ? 'Сохранить изменения' : 'Добавить оборудование'}
+              {busy ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Equipment'}
             </button>
           </div>
         </form>
