@@ -3,6 +3,9 @@
 > A full-stack equipment rental platform — browse, book, and manage rental orders online.
 
 ---
+<img width="1920" height="862" alt="image" src="https://github.com/user-attachments/assets/5429adc2-2323-4e0a-8045-720273dc4786" />
+<img width="1920" height="871" alt="image" src="https://github.com/user-attachments/assets/2e32d05e-91d8-4b50-a456-a1fb274e28bf" />
+
 
 ## Problem Statement
 
