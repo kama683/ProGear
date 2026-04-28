@@ -73,6 +73,12 @@ func (h *EquipmentHandler) Create(c *fiber.Ctx) error {
 	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Category) == "" || strings.TrimSpace(req.Type) == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "name, category and type are required"})
 	}
+	if req.DailyRate < 0 || req.SalePrice < 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "prices must be non-negative"})
+	}
+	if req.Quantity < 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "quantity must be non-negative"})
+	}
 	resp, err := h.equipment.Create(req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -99,6 +105,12 @@ func (h *EquipmentHandler) Update(c *fiber.Ctx) error {
 	var req dto.EquipmentUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+	if (req.DailyRate != nil && *req.DailyRate < 0) || (req.SalePrice != nil && *req.SalePrice < 0) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "prices must be non-negative"})
+	}
+	if req.Quantity != nil && *req.Quantity < 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "quantity must be non-negative"})
 	}
 	resp, err := h.equipment.Update(uint(id), req)
 	if err != nil {

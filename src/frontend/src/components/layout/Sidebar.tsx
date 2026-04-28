@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, ShoppingCart, FileText, User, Users, LogOut, Menu,
+  LayoutDashboard, Package, ShoppingCart, FileText, User, Users, LogOut, Menu, Heart,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { initials, getRoleLabel } from '../../utils/format';
@@ -78,6 +78,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           <div className="sidebar-section">
             <div className="sidebar-section-title">Account</div>
+            <NavLink to="/wishlist" className={linkClass} onClick={onClose}>
+              <Heart size={16} /> Wishlist
+            </NavLink>
             <NavLink to="/profile" className={linkClass} onClick={onClose}>
               <User size={16} /> Profile
             </NavLink>

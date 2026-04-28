@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { login } from '../../api/auth';
 import { Alert } from '../../components/ui/Alert';
@@ -8,6 +8,9 @@ import { Spinner } from '../../components/ui/Spinner';
 export function LoginPage() {
   const { setUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get('expired') === '1';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,6 +42,9 @@ export function LoginPage() {
       <div className="auth-title">Welcome back</div>
       <div className="auth-subtitle">Sign in to your account</div>
 
+      {sessionExpired && !error && (
+        <Alert type="warning" className="mb-4">Your session has expired. Please sign in again.</Alert>
+      )}
       {error && <Alert type="error" className="mb-4">{error}</Alert>}
 
       <form onSubmit={handleSubmit}>

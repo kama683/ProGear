@@ -1,14 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
-import { User, Mail, Shield, FileText, ShoppingCart, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Mail, Shield, FileText, ShoppingCart, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import { getMe } from '../../api/users';
 import { listOrders } from '../../api/orders';
 import { useAuth } from '../../context/AuthContext';
 import { LoadingCenter } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
-import { initials, getRoleLabel, getRoleColor } from '../../utils/format';
+import { initials, getRoleLabel, getRoleColor, getOrderStatusLabel, getOrderStatusColor, formatCurrency } from '../../utils/format';
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export function ProfilePage() {
   const { user: ctxUser } = useAuth();
+  const navigate = useNavigate();
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['me'],
@@ -23,13 +29,14 @@ export function ProfilePage() {
 
   const totalOrders = orders.length;
   const activeOrders = orders.filter(o => o.Status === 'reserved' || o.Status === 'checked_out').length;
-  const completedOrders = orders.filter(o => o.Status === 'completed').length;
+  const completedOrders = orders.filter(o => o.Status === 'completed' || o.Status === 'returned').length;
+  const recentOrders = [...orders].sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()).slice(0, 5);
 
   if (isLoading) return <LoadingCenter />;
   if (!user) return <div className="alert alert-error">Failed to load profile</div>;
 
   return (
-    <div style={{ maxWidth: 640 }}>
+    <div style={{ maxWidth: 700 }}>
       <div className="page-header">
         <div>
           <div className="page-title">Profile</div>
@@ -48,9 +55,7 @@ export function ProfilePage() {
             </div>
             <div>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{user.Name}</div>
-              <div style={{ marginTop: 6 }}>
-                <Badge color={getRoleColor(user.Role)}>{getRoleLabel(user.Role)}</Badge>
-              </div>
+              <div style={{ marginTop: 6 }}><Badge color={getRoleColor(user.Role)}>{getRoleLabel(user.Role)}</Badge></div>
             </div>
           </div>
         </div>
@@ -85,57 +90,76 @@ export function ProfilePage() {
       </div>
 
       {/* Personal details */}
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title">Personal Details</span>
-        </div>
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-header"><span className="card-title">Personal Details</span></div>
         <div className="card-body">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <User size={18} color="var(--color-primary)" />
+            {[
+              { icon: <User size={18} color="var(--color-primary)" />, label: 'Full Name', value: user.Name },
+              { icon: <Mail size={18} color="var(--color-primary)" />, label: 'Email', value: user.Email },
+              { icon: <Shield size={18} color="var(--color-primary)" />, label: 'Role', value: getRoleLabel(user.Role) },
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {row.icon}
+                </div>
+                <div>
+                  <div className="detail-label">{row.label}</div>
+                  <div className="detail-value">{row.value}</div>
+                </div>
               </div>
-              <div>
-                <div className="detail-label">Full Name</div>
-                <div className="detail-value">{user.Name}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Mail size={18} color="var(--color-primary)" />
-              </div>
-              <div>
-                <div className="detail-label">Email</div>
-                <div className="detail-value">{user.Email}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Shield size={18} color="var(--color-primary)" />
-              </div>
-              <div>
-                <div className="detail-label">Role</div>
-                <div className="detail-value">{getRoleLabel(user.Role)}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 16, color: 'var(--color-primary)', fontWeight: 700 }}>#</span>
-              </div>
-              <div>
-                <div className="detail-label">User ID</div>
-                <div className="detail-value">#{user.ID}</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
         <div className="card-footer">
           <div className="text-sm text-muted">Contact an administrator to change your details</div>
         </div>
       </div>
+
+      {/* Rental / Order History */}
+      {recentOrders.length > 0 && (
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Clock size={14} /> Recent Orders
+            </span>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => navigate('/orders')}>
+              View all <ArrowRight size={12} />
+            </button>
+          </div>
+          <div className="card-body" style={{ padding: 0 }}>
+            {recentOrders.map((order, idx) => (
+              <div
+                key={order.ID}
+                onClick={() => navigate(`/orders/${order.ID}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 20px', cursor: 'pointer',
+                  borderTop: idx > 0 ? '1px solid var(--color-border)' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-2)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <FileText size={16} color="var(--color-text-muted)" />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>Order #{order.ID}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{formatDate(order.CreatedAt)}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Badge color={getOrderStatusColor(order.Status)}>{getOrderStatusLabel(order.Status)}</Badge>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{formatCurrency(order.TotalAmount)}</div>
+                  <ArrowRight size={14} color="var(--color-text-light)" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -87,6 +87,8 @@ func main() {
 		equipment := v1.Group("/equipment")
 		equipment.Get("", h.Equipment.List)
 		equipment.Get("/:id", h.Equipment.Detail)
+		equipment.Get("/:id/reviews", h.Reviews.List)
+		equipment.Post("/:id/reviews", extensions.FiberAuthMiddleware(cfg), h.Reviews.Create)
 
 		equipmentProtected := v1.Group("/equipment", extensions.FiberAuthMiddleware(cfg), extensions.RequireRoles(constants.RoleAdmin, constants.RoleManager))
 		equipmentProtected.Post("", h.Equipment.Create)

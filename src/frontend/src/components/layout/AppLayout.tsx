@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { CartDrawer } from './CartDrawer';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,6 +16,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <CartDrawer />
     </div>
   );
 }

@@ -41,6 +41,10 @@ export function RentalPage() {
 
   async function handleCheck() {
     if (!equipmentId || !startAt || !endAt) return;
+    if (new Date(endAt) <= new Date(startAt)) {
+      setCheckError('End date must be after start date');
+      return;
+    }
     setChecking(true); setCheckError(''); setAvailability(null); setCalcResult(null);
     try {
       const [avail, calc] = await Promise.all([

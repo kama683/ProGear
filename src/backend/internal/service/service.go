@@ -12,6 +12,7 @@ type Services struct {
 	Equipment EquipmentService
 	Rentals   RentalService
 	Orders    OrderService
+	Reviews   ReviewService
 }
 
 func NewServices(cfg *config.Config, db *sql.DB) *Services {
@@ -21,5 +22,6 @@ func NewServices(cfg *config.Config, db *sql.DB) *Services {
 		Equipment: NewEquipmentService(db),
 		Rentals:   NewRentalService(db),
 		Orders:    NewOrderService(db),
+		Reviews:   NewReviewService(db),
 	}
 }

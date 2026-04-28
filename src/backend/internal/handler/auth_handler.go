@@ -67,7 +67,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 	resp, err := h.authSvc.Login(req)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 	return c.Status(fiber.StatusOK).JSON(resp)
 }

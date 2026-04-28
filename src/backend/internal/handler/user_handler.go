@@ -30,7 +30,7 @@ func (h *UsersHandler) Me(c *fiber.Ctx) error {
 	}
 	resp, err := h.users.GetMe(uid)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
 	}
 	return c.JSON(resp)
 }
@@ -46,7 +46,7 @@ func (h *UsersHandler) Me(c *fiber.Ctx) error {
 func (h *UsersHandler) List(c *fiber.Ctx) error {
 	users, err := h.users.ListUsers()
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
 	}
 	return c.JSON(users)
 }

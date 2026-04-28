@@ -57,3 +57,12 @@ export interface Invoice {
   OrderID: number; InvoiceNumber: string; Amount: number; InvoiceStatus: string; IssuedAt: string;
 }
 export interface ApiErrorBody { error: string; }
+
+export interface ReviewCreateRequest { Rating: number; Comment: string; }
+export interface ReviewResponse {
+  ID: number; EquipmentID: number; UserID: number; UserName: string;
+  Rating: number; Comment: string; CreatedAt: string;
+}
+export interface ReviewSummary {
+  AverageRating: number; TotalReviews: number; Reviews: ReviewResponse[];
+}

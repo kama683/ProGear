@@ -13,6 +13,12 @@ export function getAccessToken(): string | null {
   return localStorage.getItem('access_token');
 }
 
+function clearSession(): void {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -34,6 +40,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  // Session expired — clear storage and redirect to login
+  if (response.status === 401 && auth && path !== '/auth/login') {
+    clearSession();
+    window.location.href = '/login?expired=1';
+    throw new ApiResponseError('Session expired. Please sign in again.', 401);
+  }
 
   if (!response.ok) {
     let message = `HTTP ${response.status}`;

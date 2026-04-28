@@ -30,7 +30,6 @@ export function RegisterPage() {
     try {
       await register(form);
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 1800);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -44,7 +43,14 @@ export function RegisterPage() {
         <div className="auth-logo">
           <div className="auth-logo-text">Pro<span className="auth-logo-accent">Gear</span></div>
         </div>
-        <Alert type="success" className="mb-4">Account created! Redirecting to login…</Alert>
+        <Alert type="success" className="mb-4">Account created successfully!</Alert>
+        <button
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 12 }}
+          onClick={() => navigate('/login')}
+        >
+          Go to Sign In
+        </button>
       </div>
     );
   }

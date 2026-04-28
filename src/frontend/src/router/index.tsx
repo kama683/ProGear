@@ -15,6 +15,7 @@ import { OrderDetailPage } from '../pages/orders/OrderDetailPage';
 import { CreateOrderPage } from '../pages/orders/CreateOrderPage';
 import { ProfilePage } from '../pages/profile/ProfilePage';
 import { UsersListPage } from '../pages/admin/UsersListPage';
+import { WishlistPage } from '../pages/wishlist/WishlistPage';
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: 'orders/new', element: <ProtectedRoute roles={['customer']}><CreateOrderPage /></ProtectedRoute> },
       { path: 'orders/:id', element: <OrderDetailPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'wishlist', element: <WishlistPage /> },
       { path: 'admin/users', element: <ProtectedRoute roles={['admin']}><UsersListPage /></ProtectedRoute> },
     ],
   },

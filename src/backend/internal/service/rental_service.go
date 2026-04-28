@@ -26,6 +26,9 @@ func NewRentalService(db *sql.DB) RentalService {
 }
 
 func (s *rentalService) CheckAvailability(equipmentID uint, startAt, endAt time.Time) (dto.AvaialbilityResponse, error) {
+	if !endAt.After(startAt) {
+		return dto.AvaialbilityResponse{}, errors.New("endAt must be after startAt")
+	}
 	availableCount, err := s.countAvailableUnits(equipmentID, startAt, endAt)
 	if err != nil {
 		return dto.AvaialbilityResponse{}, err

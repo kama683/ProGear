@@ -32,7 +32,7 @@ func (h *RentalHandler) Availability(c *fiber.Ctx) error {
 	if equipmentID <= 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "equipmentId is required"})
 	}
-	startAt, err := time.Parse(time.RFC3339, c.Query("endAt"))
+	startAt, err := time.Parse(time.RFC3339, c.Query("startAt"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid startAt, use RFC3339"})
 	}
@@ -40,9 +40,12 @@ func (h *RentalHandler) Availability(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid endAt, use RFC3339"})
 	}
+	if !endAt.After(startAt) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "endAt must be after startAt"})
+	}
 	resp, err := h.rentals.CheckAvailability(uint(equipmentID), startAt, endAt)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
 	}
 	return c.JSON(resp)
 }

@@ -59,7 +59,7 @@ func (h *OrderHandler) List(c *fiber.Ctx) error {
 	role, _ := c.Locals("user_role").(string)
 	resp, err := h.orders.List(uid, role)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
 	}
 	return c.JSON(resp)
 }

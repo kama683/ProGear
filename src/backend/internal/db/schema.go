@@ -93,6 +93,17 @@ func InitSchema(db *sql.DB) error {
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 		);`,
 		`CREATE INDEX IF NOT EXISTS idx_equipment_images_equipment_id ON equipment_images(equipment_id, position);`,
+		`CREATE TABLE IF NOT EXISTS equipment_reviews (
+			id BIGSERIAL PRIMARY KEY,
+			equipment_id BIGINT NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+			user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+			comment TEXT NOT NULL DEFAULT '',
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			UNIQUE(equipment_id, user_id)
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_equipment_reviews_equipment_id ON equipment_reviews(equipment_id);`,
 	}
 
 	tx, err := db.Begin()

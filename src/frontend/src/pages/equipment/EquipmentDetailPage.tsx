@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Edit, Calendar, Package, Hash } from 'lucide-react';
+import { ArrowLeft, Edit, Calendar, Package, Hash, Heart, ShoppingBag } from 'lucide-react';
 import { getEquipment } from '../../api/equipment';
 import { checkAvailability, calculateRental } from '../../api/rentals';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { LoadingCenter } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
 import { Alert } from '../../components/ui/Alert';
+import { ReviewsList } from '../../components/equipment/ReviewsList';
 import { formatCurrency, formatDateTime, getEquipmentTypeLabel, getEquipmentTypeColor, toLocalDatetimeInput } from '../../utils/format';
 import type { AvailabilityResponse, CalculateResponse } from '../../types/api';
 
@@ -15,6 +18,8 @@ export function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { canManageEquipment, isCustomer } = useAuth();
+  const { addItem, isInCart } = useCart();
+  const { toggle, isSaved } = useWishlist();
 
   const [startAt, setStartAt] = useState('');
   const [endAt, setEndAt] = useState('');
@@ -32,6 +37,10 @@ export function EquipmentDetailPage() {
 
   async function handleCheck() {
     if (!startAt || !endAt || !id) return;
+    if (new Date(endAt) <= new Date(startAt)) {
+      setCalcError('End date must be after start date');
+      return;
+    }
     setChecking(true); setCalcError(''); setAvailability(null); setCalcResult(null);
     try {
       const [avail, calc] = await Promise.all([
@@ -50,6 +59,9 @@ export function EquipmentDetailPage() {
   if (!eq) return <Alert type="error">Equipment not found</Alert>;
 
   const minStart = toLocalDatetimeInput(new Date());
+  const saved = isSaved(eq.ID);
+  const cartType = eq.Type === 'sale' ? 'sale' : 'rental';
+  const inCart = isInCart(eq.ID, cartType);
 
   return (
     <div>
@@ -63,11 +75,36 @@ export function EquipmentDetailPage() {
             <div className="page-subtitle">{eq.Category}</div>
           </div>
         </div>
-        {canManageEquipment && (
-          <button className="btn btn-secondary" onClick={() => navigate(`/equipment/${id}/edit`)}>
-            <Edit size={16} /> Edit
+        <div style={{ display: 'flex', gap: 8 }}>
+          {/* Wishlist */}
+          <button
+            className="btn btn-secondary btn-icon"
+            title={saved ? 'Remove from wishlist' : 'Save to wishlist'}
+            onClick={() => toggle(eq.ID)}
+          >
+            <Heart size={16} style={{ fill: saved ? '#ef4444' : 'transparent', color: saved ? '#ef4444' : undefined }} />
           </button>
-        )}
+          {/* Add to cart */}
+          <button
+            className={`btn btn-sm ${inCart ? 'btn-secondary' : 'btn-secondary'}`}
+            disabled={inCart || eq.Quantity === 0}
+            title={inCart ? 'Already in cart' : 'Add to cart'}
+            onClick={() => addItem({
+              equipmentId: eq.ID, equipmentName: eq.Name, category: eq.Category,
+              itemType: cartType, quantity: 1,
+              dailyRate: eq.DailyRate, salePrice: eq.SalePrice,
+            })}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <ShoppingBag size={15} style={{ color: inCart ? 'var(--color-primary)' : undefined }} />
+            {inCart ? 'In Cart' : 'Add to Cart'}
+          </button>
+          {canManageEquipment && (
+            <button className="btn btn-secondary" onClick={() => navigate(`/equipment/${id}/edit`)}>
+              <Edit size={16} /> Edit
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
@@ -117,7 +154,6 @@ export function EquipmentDetailPage() {
                   <div className="detail-value">{formatDateTime(eq.UpdatedAt)}</div>
                 </div>
               </div>
-
               {eq.Description && (
                 <div style={{ marginTop: 16 }}>
                   <div className="detail-label" style={{ marginBottom: 6 }}>Description</div>
@@ -128,7 +164,7 @@ export function EquipmentDetailPage() {
           </div>
 
           {eq.Serials && eq.Serials.length > 0 && (
-            <div className="card">
+            <div className="card mb-4">
               <div className="card-header">
                 <span className="card-title"><Hash size={14} style={{ marginRight: 6 }} />Serial Numbers</span>
               </div>
@@ -139,6 +175,9 @@ export function EquipmentDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Reviews */}
+          <ReviewsList equipmentId={eq.ID} />
         </div>
 
         {(eq.Type === 'rental' || eq.Type === 'both') && (
@@ -171,9 +210,7 @@ export function EquipmentDetailPage() {
               {availability && (
                 <div className="mt-4">
                   <Alert type={availability.Available ? 'success' : 'error'}>
-                    {availability.Available
-                      ? `${availability.AvailableUnits} units available`
-                      : 'No available units for these dates'}
+                    {availability.Available ? `${availability.AvailableUnits} units available` : 'No available units for these dates'}
                   </Alert>
                   {calcResult && availability.Available && (
                     <div className="card mt-4" style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)' }}>
