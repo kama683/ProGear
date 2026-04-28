@@ -4,6 +4,7 @@ import { AuthLayout } from '../components/layout/AuthLayout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
+import { LandingPage } from '../pages/landing/LandingPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EquipmentListPage } from '../pages/equipment/EquipmentListPage';
 import { EquipmentDetailPage } from '../pages/equipment/EquipmentDetailPage';
@@ -18,15 +19,16 @@ import { UsersListPage } from '../pages/admin/UsersListPage';
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
     element: <AuthLayout />,
     children: [
-      { index: true, element: <Navigate to="/login" replace /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
     ],
   },
   {
-    path: '/',
     element: <ProtectedRoute><AppLayout /></ProtectedRoute>,
     children: [
       { path: 'dashboard', element: <DashboardPage /> },
@@ -42,5 +44,5 @@ export const router = createBrowserRouter([
       { path: 'admin/users', element: <ProtectedRoute roles={['admin']}><UsersListPage /></ProtectedRoute> },
     ],
   },
-  { path: '*', element: <Navigate to="/dashboard" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
