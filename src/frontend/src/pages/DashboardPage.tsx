@@ -20,11 +20,15 @@ export function DashboardPage() {
     queryFn: () => listEquipment(typeFilter ? { type: typeFilter } : undefined),
   });
 
-  const filtered = equipment.filter(e =>
-    !search ||
-    e.Name.toLowerCase().includes(search.toLowerCase()) ||
-    e.Category.toLowerCase().includes(search.toLowerCase())
-  );
+  // filter by search text
+  const filtered = equipment.filter(item => {
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      item.Name.toLowerCase().includes(searchLower) ||
+      item.Category.toLowerCase().includes(searchLower)
+    );
+  });
 
   if (isLoading) return <LoadingCenter />;
 
@@ -81,10 +85,10 @@ export function DashboardPage() {
         />
       ) : (
         <div className="eq-grid">
-          {filtered.map(eq => (
-            <div key={eq.ID} className="eq-card">
-              {eq.Images && eq.Images.length > 0 ? (
-                <img src={eq.Images[0]} alt={eq.Name} className="eq-card-img" />
+          {filtered.map(item => (
+            <div key={item.ID} className="eq-card">
+              {item.Images && item.Images.length > 0 ? (
+                <img src={item.Images[0]} alt={item.Name} className="eq-card-img" />
               ) : (
                 <div className="eq-card-img-placeholder">
                   <Package size={48} />
@@ -92,35 +96,39 @@ export function DashboardPage() {
               )}
               <div className="eq-card-body">
                 <div className="eq-card-meta">
-                  <span className="eq-card-category">{eq.Category}</span>
-                  <Badge color={getEquipmentTypeColor(eq.Type)}>
-                    {getEquipmentTypeLabel(eq.Type)}
+                  <span className="eq-card-category">{item.Category}</span>
+                  <Badge color={getEquipmentTypeColor(item.Type)}>
+                    {getEquipmentTypeLabel(item.Type)}
                   </Badge>
                 </div>
-                <div className="eq-card-name">{eq.Name}</div>
+                <div className="eq-card-name">{item.Name}</div>
                 <div>
-                  {(eq.Type === 'rental' || eq.Type === 'both') && (
+                  {(item.Type === 'rental' || item.Type === 'both') && (
                     <div>
-                      <span className="eq-card-price">{formatCurrency(eq.DailyRate)}</span>
+                      <span className="eq-card-price">{formatCurrency(item.DailyRate)}</span>
                       <span className="eq-card-price-sub"> / day</span>
                     </div>
                   )}
-                  {(eq.Type === 'sale' || eq.Type === 'both') && (
+                  {(item.Type === 'sale' || item.Type === 'both') && (
                     <div>
-                      <span className="eq-card-price">{formatCurrency(eq.SalePrice)}</span>
+                      <span className="eq-card-price">{formatCurrency(item.SalePrice)}</span>
                       <span className="eq-card-price-sub"> price</span>
                     </div>
                   )}
                 </div>
                 <div className="eq-card-status">
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: eq.Quantity > 0 ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-block' }} />
-                  {eq.Quantity > 0 ? `In stock: ${eq.Quantity} units` : 'Out of stock'}
+                  <span style={{
+                    width: 7, height: 7, borderRadius: '50%',
+                    background: item.Quantity > 0 ? 'var(--color-success)' : 'var(--color-danger)',
+                    display: 'inline-block',
+                  }} />
+                  {item.Quantity > 0 ? `In stock: ${item.Quantity} units` : 'Out of stock'}
                 </div>
               </div>
               <div className="eq-card-footer">
                 <button
                   className="btn btn-primary btn-full btn-sm"
-                  onClick={() => navigate(`/equipment/${eq.ID}`)}
+                  onClick={() => navigate(`/equipment/${item.ID}`)}
                 >
                   View Details
                 </button>

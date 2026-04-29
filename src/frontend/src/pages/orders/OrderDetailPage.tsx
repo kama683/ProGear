@@ -12,8 +12,10 @@ import { Modal } from '../../components/ui/Modal';
 import { formatCurrency, formatDateTime, getOrderStatusLabel, getOrderStatusColor } from '../../utils/format';
 import type { OrderStatus, Invoice } from '../../types/api';
 
+// the flow of statuses in order
 const STATUS_FLOW: OrderStatus[] = ['reserved', 'checked_out', 'returned', 'completed'];
 
+// which statuses can come next for each current status
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   reserved: ['checked_out', 'cancelled'],
   checked_out: ['returned'],
@@ -25,7 +27,7 @@ export function OrderDetailPage() {
   const navigate = useNavigate();
   const { canManageOrders } = useAuth();
   const { success, error: toastError } = useToast();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
 
   const [invoiceData, setInvoiceData] = useState<Invoice | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
@@ -37,23 +39,29 @@ export function OrderDetailPage() {
     queryFn: listOrders,
   });
 
-  const order = orders.find(o => o.ID === Number(id));
+  const order = orders.find(order => order.ID === Number(id));
 
   const statusMutation = useMutation({
     mutationFn: (status: OrderStatus) => updateOrderStatus(Number(id), { Status: status }),
     onSuccess: (updated) => {
-      qc.setQueryData(['orders'], (prev: typeof orders) => prev.map(o => o.ID === updated.ID ? updated : o));
+      queryClient.setQueryData(['orders'], (prev: typeof orders) =>
+        prev.map(order => order.ID === updated.ID ? updated : order)
+      );
       success('Status updated', `Order #${id} → ${getOrderStatusLabel(updated.Status)}`);
       setConfirmStatus(null);
     },
-    onError: (err: Error) => { toastError('Error', err.message); setConfirmStatus(null); },
+    onError: (err: Error) => {
+      toastError('Error', err.message);
+      setConfirmStatus(null);
+    },
   });
 
   async function handleGetInvoice() {
     setLoadingInvoice(true);
     try {
       const inv = await getInvoice(Number(id));
-      setInvoiceData(inv); setInvoiceOpen(true);
+      setInvoiceData(inv);
+      setInvoiceOpen(true);
     } catch (err: unknown) {
       toastError('Error', err instanceof Error ? err.message : 'Failed to get invoice');
     } finally {
@@ -93,21 +101,28 @@ export function OrderDetailPage() {
           <div className="card mb-4">
             <div className="card-header">
               <span className="card-title">Order Information</span>
-              <Badge color={getOrderStatusColor(order.Status)}>{getOrderStatusLabel(order.Status)}</Badge>
+              <Badge color={getOrderStatusColor(order.Status)}>
+                {getOrderStatusLabel(order.Status)}
+              </Badge>
             </div>
             <div className="card-body">
               <div className="detail-grid">
                 <div className="detail-item">
                   <div className="detail-label">Order Type</div>
                   <div className="detail-value">
-                    <Badge color={order.OrderType === 'rental' ? 'badge-blue' : order.OrderType === 'sale' ? 'badge-green' : 'badge-purple'}>
+                    <Badge color={
+                      order.OrderType === 'rental' ? 'badge-blue' :
+                      order.OrderType === 'sale' ? 'badge-green' : 'badge-purple'
+                    }>
                       {order.OrderType === 'rental' ? 'Rental' : order.OrderType === 'sale' ? 'Sale' : 'Mixed'}
                     </Badge>
                   </div>
                 </div>
                 <div className="detail-item">
                   <div className="detail-label">Amount</div>
-                  <div className="detail-value price" style={{ fontSize: 18 }}>{formatCurrency(order.TotalAmount)}</div>
+                  <div className="detail-value price" style={{ fontSize: 18 }}>
+                    {formatCurrency(order.TotalAmount)}
+                  </div>
                 </div>
                 <div className="detail-item">
                   <div className="detail-label">Created</div>
@@ -126,7 +141,15 @@ export function OrderDetailPage() {
               <div className="card-header"><span className="card-title">Order Items</span></div>
               <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
                 <table className="table">
-                  <thead><tr><th>Type</th><th>Equipment</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Equipment</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {order.Items.map(item => (
                       <tr key={item.ID}>
@@ -137,7 +160,11 @@ export function OrderDetailPage() {
                         </td>
                         <td>
                           <div>ID: {item.EquipmentID}</div>
-                          {item.StartAt && <div className="text-xs text-muted">{formatDateTime(item.StartAt)} — {formatDateTime(item.EndAt)}</div>}
+                          {item.StartAt && (
+                            <div className="text-xs text-muted">
+                              {formatDateTime(item.StartAt)} — {formatDateTime(item.EndAt)}
+                            </div>
+                          )}
                         </td>
                         <td>{item.Quantity}</td>
                         <td>{formatCurrency(item.UnitPrice)}</td>
@@ -160,17 +187,22 @@ export function OrderDetailPage() {
             <div className="card-header"><span className="card-title">Order Status</span></div>
             <div className="card-body">
               <div className="order-status-flow">
-                {STATUS_FLOW.map((s, i) => {
-                  const idx = STATUS_FLOW.indexOf(order.Status as OrderStatus);
-                  const done = i < idx;
-                  const active = s === order.Status;
+                {STATUS_FLOW.map((step, i) => {
+                  const currentIdx = STATUS_FLOW.indexOf(order.Status as OrderStatus);
+                  const isDone = i < currentIdx;
+                  const isActive = step === order.Status;
+
                   return (
-                    <div key={s} style={{ display: 'flex', alignItems: 'center' }}>
-                      <div className={`order-status-step ${done ? 'done' : active ? 'active' : ''}`}>
+                    <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
+                      <div className={`order-status-step ${isDone ? 'done' : isActive ? 'active' : ''}`}>
                         <div className="order-status-dot" />
-                        {getOrderStatusLabel(s)}
+                        {getOrderStatusLabel(step)}
                       </div>
-                      {i < STATUS_FLOW.length - 1 && <div className="order-status-arrow" style={{ margin: '0 8px', color: 'var(--color-border-strong)' }}>→</div>}
+                      {i < STATUS_FLOW.length - 1 && (
+                        <div className="order-status-arrow" style={{ margin: '0 8px', color: 'var(--color-border-strong)' }}>
+                          →
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -203,6 +235,7 @@ export function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Confirm status change dialog */}
       <Modal
         open={!!confirmStatus}
         onClose={() => setConfirmStatus(null)}
@@ -222,10 +255,16 @@ export function OrderDetailPage() {
           </>
         }
       >
-        <p>Are you sure you want to change the status of order <strong>#{id}</strong> to <strong>"{confirmStatus ? getOrderStatusLabel(confirmStatus) : ''}"</strong>?</p>
-        {confirmStatus === 'cancelled' && <Alert type="warning" className="mt-4">This action is irreversible.</Alert>}
+        <p>
+          Are you sure you want to change the status of order <strong>#{id}</strong> to{' '}
+          <strong>"{confirmStatus ? getOrderStatusLabel(confirmStatus) : ''}"</strong>?
+        </p>
+        {confirmStatus === 'cancelled' && (
+          <Alert type="warning" className="mt-4">This action is irreversible.</Alert>
+        )}
       </Modal>
 
+      {/* Invoice modal */}
       <Modal open={invoiceOpen} onClose={() => setInvoiceOpen(false)} title="Invoice" size="md">
         {invoiceData && (
           <div className="invoice-box">
@@ -253,7 +292,9 @@ export function OrderDetailPage() {
               </div>
               <div className="detail-item">
                 <div className="detail-label">Status</div>
-                <div className="detail-value">{invoiceData.InvoiceStatus === 'paid' ? 'Paid' : 'Awaiting Payment'}</div>
+                <div className="detail-value">
+                  {invoiceData.InvoiceStatus === 'paid' ? 'Paid' : 'Awaiting Payment'}
+                </div>
               </div>
             </div>
           </div>

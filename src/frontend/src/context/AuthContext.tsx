@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import type { User } from '../types/api';
 import { logout as apiLogout, getStoredUser } from '../api/auth';
 
-interface AuthContextValue {
+// what we expose to the rest of the app through this context
+interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
@@ -13,18 +14,17 @@ interface AuthContextValue {
   canManageOrders: boolean;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(() => getStoredUser());
-
-  const setUser = useCallback((u: User | null) => setUserState(u), []);
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
 
   const logout = useCallback(() => {
     apiLogout();
-    setUserState(null);
+    setUser(null);
   }, []);
 
+  // role checks based on current user
   const isAdmin = user?.Role === 'admin';
   const isManager = user?.Role === 'manager';
   const isCustomer = user?.Role === 'customer';
@@ -32,14 +32,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canManageOrders = isAdmin || isManager;
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, isAdmin, isManager, isCustomer, canManageEquipment, canManageOrders }}>
+    <AuthContext.Provider value={{
+      user,
+      setUser,
+      logout,
+      isAdmin,
+      isManager,
+      isCustomer,
+      canManageEquipment,
+      canManageOrders,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
 }

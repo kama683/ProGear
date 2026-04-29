@@ -30,7 +30,9 @@ export function ProfilePage() {
   const totalOrders = orders.length;
   const activeOrders = orders.filter(o => o.Status === 'reserved' || o.Status === 'checked_out').length;
   const completedOrders = orders.filter(o => o.Status === 'completed' || o.Status === 'returned').length;
-  const recentOrders = [...orders].sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()).slice(0, 5);
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
+    .slice(0, 5);
 
   if (isLoading) return <LoadingCenter />;
   if (!user) return <div className="alert alert-error">Failed to load profile</div>;
@@ -50,12 +52,19 @@ export function ProfilePage() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-body">
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 800, flexShrink: 0 }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: 'var(--color-primary)', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 24, fontWeight: 800, flexShrink: 0,
+            }}>
               {initials(user.Name)}
             </div>
             <div>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{user.Name}</div>
-              <div style={{ marginTop: 6 }}><Badge color={getRoleColor(user.Role)}>{getRoleLabel(user.Role)}</Badge></div>
+              <div style={{ marginTop: 6 }}>
+                <Badge color={getRoleColor(user.Role)}>{getRoleLabel(user.Role)}</Badge>
+              </div>
             </div>
           </div>
         </div>
@@ -94,21 +103,37 @@ export function ProfilePage() {
         <div className="card-header"><span className="card-title">Personal Details</span></div>
         <div className="card-body">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              { icon: <User size={18} color="var(--color-primary)" />, label: 'Full Name', value: user.Name },
-              { icon: <Mail size={18} color="var(--color-primary)" />, label: 'Email', value: user.Email },
-              { icon: <Shield size={18} color="var(--color-primary)" />, label: 'Role', value: getRoleLabel(user.Role) },
-            ].map(row => (
-              <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {row.icon}
-                </div>
-                <div>
-                  <div className="detail-label">{row.label}</div>
-                  <div className="detail-value">{row.value}</div>
-                </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <User size={18} color="var(--color-primary)" />
               </div>
-            ))}
+              <div>
+                <div className="detail-label">Full Name</div>
+                <div className="detail-value">{user.Name}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Mail size={18} color="var(--color-primary)" />
+              </div>
+              <div>
+                <div className="detail-label">Email</div>
+                <div className="detail-value">{user.Email}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Shield size={18} color="var(--color-primary)" />
+              </div>
+              <div>
+                <div className="detail-label">Role</div>
+                <div className="detail-value">{getRoleLabel(user.Role)}</div>
+              </div>
+            </div>
+
           </div>
         </div>
         <div className="card-footer">
@@ -116,14 +141,18 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* Rental / Order History */}
+      {/* Recent orders */}
       {recentOrders.length > 0 && (
         <div className="card">
           <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Clock size={14} /> Recent Orders
             </span>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => navigate('/orders')}>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 12 }}
+              onClick={() => navigate('/orders')}
+            >
               View all <ArrowRight size={12} />
             </button>
           </div>

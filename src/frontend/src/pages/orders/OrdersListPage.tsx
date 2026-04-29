@@ -19,8 +19,15 @@ export function OrdersListPage() {
     queryFn: listOrders,
   });
 
-  const filtered = statusFilter ? orders.filter(o => o.Status === statusFilter) : orders;
-  const sorted = [...filtered].sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime());
+  // filter by status if selected
+  const filtered = statusFilter
+    ? orders.filter(order => order.Status === statusFilter)
+    : orders;
+
+  // newest first
+  const sorted = [...filtered].sort((a, b) =>
+    new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
+  );
 
   if (isLoading) return <LoadingCenter />;
 
@@ -47,7 +54,9 @@ export function OrdersListPage() {
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <span className="text-sm text-muted" style={{ marginLeft: 'auto' }}>Orders: {sorted.length}</span>
+        <span className="text-sm text-muted" style={{ marginLeft: 'auto' }}>
+          Orders: {sorted.length}
+        </span>
       </div>
 
       {error ? (
@@ -79,19 +88,36 @@ export function OrdersListPage() {
             </thead>
             <tbody>
               {sorted.map(order => (
-                <tr key={order.ID} style={{ cursor: 'pointer' }} onClick={() => navigate(`/orders/${order.ID}`)}>
+                <tr
+                  key={order.ID}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/orders/${order.ID}`)}
+                >
                   <td><span style={{ fontWeight: 700 }}>#{order.ID}</span></td>
                   <td>
-                    <Badge color={order.OrderType === 'rental' ? 'badge-blue' : order.OrderType === 'sale' ? 'badge-green' : 'badge-purple'}>
+                    <Badge color={
+                      order.OrderType === 'rental' ? 'badge-blue' :
+                      order.OrderType === 'sale' ? 'badge-green' : 'badge-purple'
+                    }>
                       {order.OrderType === 'rental' ? 'Rental' : order.OrderType === 'sale' ? 'Sale' : 'Mixed'}
                     </Badge>
                   </td>
-                  <td><Badge color={getOrderStatusColor(order.Status)}>{getOrderStatusLabel(order.Status)}</Badge></td>
+                  <td>
+                    <Badge color={getOrderStatusColor(order.Status)}>
+                      {getOrderStatusLabel(order.Status)}
+                    </Badge>
+                  </td>
                   <td><span className="font-bold">{formatCurrency(order.TotalAmount)}</span></td>
                   <td className="text-muted">{order.Items?.length ?? '—'}</td>
                   <td className="text-muted text-sm">{formatDateTime(order.CreatedAt)}</td>
                   <td>
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={e => { e.stopPropagation(); navigate(`/orders/${order.ID}`); }}>
+                    <button
+                      className="btn btn-ghost btn-sm btn-icon"
+                      onClick={e => {
+                        e.stopPropagation();
+                        navigate(`/orders/${order.ID}`);
+                      }}
+                    >
                       <Eye size={16} />
                     </button>
                   </td>
