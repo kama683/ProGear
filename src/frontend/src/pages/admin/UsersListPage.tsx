@@ -42,6 +42,8 @@ export function UsersListPage() {
           <div className="stat-card-label">Managers</div>
           <div className="stat-card-value">{byRole.manager}</div>
         </div>
+
+        
         <div className="stat-card">
           <div className="stat-card-label">Customers</div>
           <div className="stat-card-value">{byRole.customer}</div>
