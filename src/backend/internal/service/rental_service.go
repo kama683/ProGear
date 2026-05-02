@@ -29,6 +29,7 @@ func (s *rentalService) CheckAvailability(equipmentID uint, startAt, endAt time.
 	if !endAt.After(startAt) {
 		return dto.AvaialbilityResponse{}, errors.New("endAt must be after startAt")
 	}
+	s.cancelExpiredReservations()
 	availableCount, err := s.countAvailableUnits(equipmentID, startAt, endAt)
 	if err != nil {
 		return dto.AvaialbilityResponse{}, err
@@ -51,6 +52,10 @@ func (s *rentalService) Book(userId uint, req dto.RentalBookRequest) (dto.Rental
 		return dto.RentalBookResponse{}, err
 	}
 	defer tx.Rollback()
+
+	if err := s.cancelExpiredReservationsTx(tx); err != nil {
+		return dto.RentalBookResponse{}, fmt.Errorf("cleanup expired reservations: %w", err)
+	}
 
 	unitId, err := s.findAndLockAvailableUnit(tx, req.EquipmentID, req.StartAt, req.EndAt)
 	if err != nil {
@@ -111,6 +116,33 @@ func (s *rentalService) Calculate(req dto.RentalCalculateRequest) (dto.RentalCal
 		Mode:        mode,
 		Amount:      amount,
 	}, nil
+}
+
+// cancelExpiredReservations releases units whose 'reserved' period has passed without checkout.
+// Best-effort: errors are silently ignored since this is a cleanup step.
+func (s *rentalService) cancelExpiredReservations() {
+	s.db.Exec(`
+		UPDATE equipment_units SET status = 'available'
+		WHERE id IN (
+			SELECT equipment_unit_id FROM rental_reservations
+			WHERE status = 'reserved' AND end_at <= NOW()
+		)
+	`)
+	s.db.Exec(`UPDATE rental_reservations SET status = 'cancelled' WHERE status = 'reserved' AND end_at <= NOW()`)
+}
+
+func (s *rentalService) cancelExpiredReservationsTx(tx *sql.Tx) error {
+	if _, err := tx.Exec(`
+		UPDATE equipment_units SET status = 'available'
+		WHERE id IN (
+			SELECT equipment_unit_id FROM rental_reservations
+			WHERE status = 'reserved' AND end_at <= NOW()
+		)
+	`); err != nil {
+		return err
+	}
+	_, err := tx.Exec(`UPDATE rental_reservations SET status = 'cancelled' WHERE status = 'reserved' AND end_at <= NOW()`)
+	return err
 }
 
 func (s *rentalService) countAvailableUnits(equipmentID uint, startAt, endAt time.Time) (int, error) {

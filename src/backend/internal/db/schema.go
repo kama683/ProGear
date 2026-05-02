@@ -106,6 +106,18 @@ func InitSchema(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_equipment_reviews_equipment_id ON equipment_reviews(equipment_id);`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';`,
+		`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';`,
+		// Auto-create missing equipment_units for equipment that has quantity > 0 but no unit rows.
+		// This repairs data created before the auto-create fix was introduced.
+		`INSERT INTO equipment_units (equipment_id, serial_number, status)
+		SELECT e.id,
+		       'AUTO-' || e.id || '-' || LPAD(gs.n::TEXT, 5, '0'),
+		       'available'
+		FROM equipment e
+		CROSS JOIN generate_series(1, e.quantity) AS gs(n)
+		WHERE e.quantity > 0
+		  AND NOT EXISTS (SELECT 1 FROM equipment_units eu WHERE eu.equipment_id = e.id)
+		ON CONFLICT (serial_number) DO NOTHING;`,
 	}
 
 	tx, err := db.Begin()

@@ -157,7 +157,9 @@ export function ProfilePage() {
           </div>
         </div>
         <div className="card-footer">
-          <div className="text-sm text-muted">Contact an administrator to change your details</div>
+          <div className="text-sm text-muted">Contact an administrator to change your details 
+            <a href="mailto:kamronyunussaliyev@gmail.com"> kamronyunussaliyev@gmail.com</a>
+          </div>
         </div>
       </div>
 

@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, MapPin } from 'lucide-react';
 import { getEquipment, createEquipment, updateEquipment } from '../../api/equipment';
 import { useToast } from '../../hooks/useToast';
 import { LoadingCenter, Spinner } from '../../components/ui/Spinner';
 import { Alert } from '../../components/ui/Alert';
-
 import type { EquipmentType } from '../../types/api';
 
 interface FormData {
   Name: string; Category: string; Description: string; Type: string;
   DailyRate: string; SalePrice: string; Quantity: string;
-  Serials: string[]; Images: string[];
+  Address: string; Serials: string[]; Images: string[];
 }
 
-const empty: FormData = { Name: '', Category: '', Description: '', Type: 'rental', DailyRate: '', SalePrice: '', Quantity: '1', Serials: [], Images: [] };
+const empty: FormData = {
+  Name: '', Category: '', Description: '', Type: 'rental',
+  DailyRate: '', SalePrice: '', Quantity: '1',
+  Address: '', Serials: [], Images: [],
+};
 
 export function EquipmentFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,8 +43,8 @@ export function EquipmentFormPage() {
       setForm({
         Name: existing.Name, Category: existing.Category, Description: existing.Description,
         Type: existing.Type, DailyRate: existing.DailyRate, SalePrice: existing.SalePrice,
-        Quantity: String(existing.Quantity), Serials: existing.Serials ?? [],
-        Images: existing.Images ?? [],
+        Quantity: String(existing.Quantity), Address: existing.Address ?? '',
+        Serials: existing.Serials ?? [], Images: existing.Images ?? [],
       });
     }
   }, [existing, isEdit]);
@@ -101,6 +104,7 @@ export function EquipmentFormPage() {
           DailyRate: form.DailyRate ? parseFloat(form.DailyRate) : undefined,
           SalePrice: form.SalePrice ? parseFloat(form.SalePrice) : undefined,
           Quantity: qty,
+          Address: form.Address || undefined,
           Images: form.Images,
         },
       });
@@ -113,6 +117,7 @@ export function EquipmentFormPage() {
         DailyRate: parseFloat(form.DailyRate) || 0,
         SalePrice: parseFloat(form.SalePrice) || 0,
         Quantity: qty,
+        Address: form.Address || undefined,
         Serials: form.Serials.length > 0 ? form.Serials : undefined,
         Images: form.Images.length > 0 ? form.Images : undefined,
       }).then(() => { qc.invalidateQueries({ queryKey: ['equipment'] }); success('Equipment added!'); navigate('/equipment'); })
@@ -195,6 +200,20 @@ export function EquipmentFormPage() {
                   value={form.SalePrice} onChange={e => update('SalePrice', e.target.value)} />
               </div>
             )}
+
+            {/* Store address */}
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={14} />
+                Store Address
+              </label>
+              <input
+                type="text" className="form-input"
+                placeholder="e.g. Tashkent, Mirzo Ulugbek, Amir Temur 108"
+                value={form.Address} onChange={e => update('Address', e.target.value)}
+              />
+              <div className="form-hint">Customers will see a map with this address on the product page</div>
+            </div>
 
             {!isEdit && (
               <div className="form-group">
