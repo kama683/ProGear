@@ -62,9 +62,6 @@ export function CardFormModal({ open, onClose, onSuccess }: Props) {
   const cardType = detectType(cardNumber);
   const expiryDisplay = expiry || 'MM/YY';
   const nameDisplay = cardholderName.trim() || 'YOUR NAME';
-  const numberDisplay = cardNumber
-    ? cardNumber.padEnd(19, ' ').replace(/ /g, (_, i) => (i % 5 === 4 ? ' ' : '•'))
-    : '•••• •••• •••• ••••';
 
   const mutation = useMutation({
     mutationFn: () => {

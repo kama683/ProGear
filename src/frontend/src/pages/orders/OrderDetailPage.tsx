@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Alert } from '../../components/ui/Alert';
 import { Modal } from '../../components/ui/Modal';
 import { formatCurrency, formatDateTime, getOrderStatusLabel, getOrderStatusColor } from '../../utils/format';
-import type { OrderStatus, Invoice } from '../../types/api';
+import type { Order, OrderStatus, Invoice } from '../../types/api';
 
 // the flow of statuses in order
 const STATUS_FLOW: OrderStatus[] = ['reserved', 'checked_out', 'returned', 'completed'];
@@ -34,25 +34,25 @@ export function OrderDetailPage() {
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [confirmStatus, setConfirmStatus] = useState<OrderStatus | null>(null);
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ['orders'],
     queryFn: listOrders,
-    refetchInterval: (query) => {
-      const data = query.state.data as typeof orders | undefined;
-      const current = data?.find(o => o.ID === Number(id));
+    refetchInterval: (query): number | false => {
+      const data = query.state.data as Order[] | undefined;
+      const current = data?.find((o: Order) => o.ID === Number(id));
       return current && (current.Status === 'reserved' || current.Status === 'checked_out')
         ? 30_000
         : false;
     },
   });
 
-  const order = orders.find(o => o.ID === Number(id));
+  const order = orders.find((o: Order) => o.ID === Number(id));
 
   const statusMutation = useMutation({
     mutationFn: (status: OrderStatus) => updateOrderStatus(Number(id), { Status: status }),
     onSuccess: (updated) => {
-      queryClient.setQueryData(['orders'], (prev: typeof orders) =>
-        prev.map(order => order.ID === updated.ID ? updated : order)
+      queryClient.setQueryData<Order[]>(['orders'], (prev = []) =>
+        prev.map((o: Order) => o.ID === updated.ID ? updated : o)
       );
       success('Status updated', `Order #${id} → ${getOrderStatusLabel(updated.Status)}`);
       setConfirmStatus(null);
@@ -158,7 +158,7 @@ export function OrderDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {order.Items.map(item => (
+                    {order.Items.map((item) => (
                       <tr key={item.ID}>
                         <td>
                           <Badge color={item.ItemType === 'rental' ? 'badge-blue' : 'badge-green'}>
@@ -229,7 +229,7 @@ export function OrderDetailPage() {
             <div className="card">
               <div className="card-header"><span className="card-title">Update Status</span></div>
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {nextStatuses.map(status => (
+                {nextStatuses.map((status: OrderStatus) => (
                   <button
                     key={status}
                     className={`btn btn-full ${status === 'cancelled' ? 'btn-danger' : 'btn-primary'}`}
