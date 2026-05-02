@@ -69,12 +69,8 @@ export function CompleteProfilePage() {
     try {
       const fullPhone = `+7${phoneDigits}`;
       const updated = await updateProfile({ Phone: fullPhone, Address: address.trim() });
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        localStorage.setItem('user', JSON.stringify({ ...parsed, Phone: updated.Phone, Address: updated.Address }));
-      }
-      setUser({ ...user, Phone: updated.Phone, Address: updated.Address });
+      localStorage.setItem('user', JSON.stringify(updated));
+      setUser(updated);
       navigate('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save profile');
@@ -95,7 +91,7 @@ export function CompleteProfilePage() {
 
       <div className="auth-title">Complete Your Profile</div>
       <div className="auth-subtitle">
-        Welcome, <strong>{user.Name}</strong>! Please add your contact details to continue.
+        Welcome, <strong>{user?.Name}</strong>! Please add your contact details to continue.
       </div>
 
       {error && <Alert type="error" className="mb-4">{error}</Alert>}
