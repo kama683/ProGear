@@ -8,10 +8,7 @@ import { Footer } from '../../components/landing/Footer';
 
 export function LandingPage() {
   return (
-    <div
-      className="min-h-screen font-inter antialiased"
-      style={{ background: '#0A0A0F', color: '#ffffff' }}
-    >
+    <div className="min-h-screen" style={{ background: '#f8fafc', color: '#0f172a' }}>
       <Navbar />
       <main>
         <Hero />

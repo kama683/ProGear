@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
 const navLinks = [
@@ -15,7 +14,7 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 60);
+    const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -26,124 +25,154 @@ export function Navbar() {
   };
 
   return (
-    <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled
-          ? 'bg-[#0A0A0F]/80 backdrop-blur-xl border-b border-white/[0.06]'
-          : 'bg-transparent'
-      }`}
+    <header
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      style={{
+        background: isScrolled ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.8)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: isScrolled ? '1px solid #e2e8f0' : '1px solid transparent',
+        boxShadow: isScrolled ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+      }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+              style={{
+                width: '32px', height: '32px', borderRadius: '8px',
+                background: '#3b82f6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
             >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+              <svg viewBox="0 0 24 24" style={{ width: '18px', height: '18px', fill: 'white' }}>
                 <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.899L15 14v-4z" />
                 <rect x="3" y="6" width="12" height="12" rx="2" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">
-              Pro
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                Gear
-              </span>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>
+              Pro<span style={{ color: '#3b82f6' }}>Gear</span>
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="hidden-mobile">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => scrollTo(link.href)}
-                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/5"
+                style={{
+                  padding: '8px 16px', fontSize: '14px', fontWeight: '500',
+                  color: '#475569', background: 'none', border: '1px solid #e2e8f0',
+                  borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#0f172a';
+                  (e.currentTarget as HTMLButtonElement).style.background = '#f1f5f9';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#475569';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'none';
+                }}
               >
                 {link.label}
               </button>
             ))}
           </nav>
 
-          {/* Desktop auth buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Desktop auth */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} className="hidden-mobile">
             <Link
               to="/login"
-              className="px-5 py-2 text-sm font-medium text-zinc-300 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 hover:bg-white/5"
+              style={{
+                padding: '8px 18px', fontSize: '14px', fontWeight: '600',
+                color: '#374151', border: '1.5px solid #e2e8f0', borderRadius: '8px',
+                textDecoration: 'none', transition: 'all 0.15s', background: 'white',
+              }}
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2 text-sm font-semibold text-white rounded-xl transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
+              style={{
+                padding: '8px 18px', fontSize: '14px', fontWeight: '600',
+                color: '#fff', background: '#3b82f6', borderRadius: '8px',
+                textDecoration: 'none', transition: 'all 0.15s', border: 'none',
+              }}
             >
               Get Started
             </Link>
           </div>
 
-          {/* Mobile menu toggle */}
+          {/* Mobile toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            style={{
+              padding: '8px', background: 'none', border: '1px solid #e2e8f0',
+              borderRadius: '8px', cursor: 'pointer', color: '#475569',
+              display: 'none',
+            }}
+            className="show-mobile"
           >
-            {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
       {/* Mobile menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden overflow-hidden bg-[#0A0A0F]/95 backdrop-blur-xl border-b border-white/[0.06]"
-          >
-            <div className="px-6 py-4 flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => scrollTo(link.href)}
-                  className="text-left px-4 py-3 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                >
-                  {link.label}
-                </button>
-              ))}
-              <div className="flex flex-col gap-2 pt-3 border-t border-white/[0.06]">
-                <Link
-                  to="/login"
-                  className="text-center px-4 py-3 text-sm font-medium text-zinc-300 border border-white/10 rounded-xl hover:bg-white/5 transition-all"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-center px-4 py-3 text-sm font-semibold text-white rounded-xl"
-                  style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+      {isMenuOpen && (
+        <div
+          style={{
+            background: 'white', borderTop: '1px solid #e2e8f0',
+            padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '8px',
+          }}
+        >
+          {navLinks.map((link) => (
+            <button
+              key={link.href}
+              onClick={() => scrollTo(link.href)}
+              style={{
+                textAlign: 'left', padding: '10px 14px', fontSize: '14px',
+                fontWeight: '500', color: '#374151', background: 'none',
+                border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer',
+              }}
+            >
+              {link.label}
+            </button>
+          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', marginTop: '4px' }}>
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textAlign: 'center', padding: '10px', fontSize: '14px', fontWeight: '600',
+                color: '#374151', border: '1.5px solid #e2e8f0', borderRadius: '8px',
+                textDecoration: 'none', background: 'white',
+              }}
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                textAlign: 'center', padding: '10px', fontSize: '14px', fontWeight: '600',
+                color: 'white', background: '#3b82f6', borderRadius: '8px',
+                textDecoration: 'none',
+              }}
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .hidden-mobile { display: none !important; }
+          .show-mobile { display: flex !important; }
+        }
+      `}</style>
+    </header>
   );
 }

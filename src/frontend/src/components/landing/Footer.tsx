@@ -42,54 +42,46 @@ export function Footer() {
   };
 
   return (
-    <footer
-      id="footer"
-      style={{ background: '#07070f', borderTop: '1px solid rgba(255,255,255,0.05)' }}
-    >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
-        <div className="grid lg:grid-cols-5 gap-12 mb-16">
-          {/* Brand column */}
-          <div className="lg:col-span-2">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+    <footer id="footer" style={{ background: '#0f172a', borderTop: '1px solid #1e293b' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '64px 24px 40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px', marginBottom: '48px' }} className="footer-grid">
+          {/* Brand */}
+          <div>
+            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', marginBottom: '20px' }}>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '8px', background: '#3b82f6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg viewBox="0 0 24 24" style={{ width: '18px', height: '18px', fill: 'white' }}>
                   <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.899L15 14v-4z" />
                   <rect x="3" y="6" width="12" height="12" rx="2" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">
-                Pro
-                <span
-                  style={{
-                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
-                  Gear
-                </span>
+              <span style={{ fontSize: '17px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px' }}>
+                Pro<span style={{ color: '#3b82f6' }}>Gear</span>
               </span>
             </Link>
 
-            <p className="text-zinc-500 text-sm leading-relaxed mb-8 max-w-xs">
+            <p style={{ fontSize: '13.5px', color: '#64748b', lineHeight: '1.7', maxWidth: '280px', marginBottom: '24px' }}>
               Professional cinema and video equipment for filmmakers, content creators and studios.
               Rental and sales worldwide.
             </p>
 
-            {/* Contacts */}
-            <div className="flex flex-col gap-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {contacts.map((c) => {
                 const Icon = c.icon;
                 return (
                   <a
                     key={c.text}
                     href={c.href}
-                    className="inline-flex items-start gap-3 text-sm text-zinc-500 hover:text-zinc-200 transition-colors"
+                    style={{
+                      display: 'inline-flex', alignItems: 'flex-start', gap: '10px',
+                      fontSize: '13px', color: '#475569', textDecoration: 'none', transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#475569'; }}
                   >
-                    <Icon size={15} className="text-violet-500 shrink-0 mt-0.5" />
+                    <Icon size={14} style={{ color: '#3b82f6', flexShrink: 0, marginTop: '2px' }} />
                     {c.text}
                   </a>
                 );
@@ -97,24 +89,32 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Links columns */}
+          {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="text-sm font-semibold text-zinc-200 mb-5 tracking-wide">{title}</h4>
-              <ul className="flex flex-col gap-3">
+              <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1', marginBottom: '16px', letterSpacing: '0.03em' }}>{title}</h4>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'none', padding: 0, margin: 0 }}>
                 {links.map((link) => (
                   <li key={link.label}>
                     {link.href.startsWith('#') ? (
                       <button
                         onClick={() => scrollToSection(link.href)}
-                        className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors text-left"
+                        style={{
+                          fontSize: '13.5px', color: '#475569', background: 'none',
+                          border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+                          transition: 'color 0.15s',
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#475569'; }}
                       >
                         {link.label}
                       </button>
                     ) : (
                       <Link
                         to={link.href}
-                        className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors"
+                        style={{ fontSize: '13.5px', color: '#475569', textDecoration: 'none', transition: 'color 0.15s' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#94a3b8'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#475569'; }}
                       >
                         {link.label}
                       </Link>
@@ -127,16 +127,14 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <p className="text-zinc-600 text-sm">
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          paddingTop: '24px', borderTop: '1px solid #1e293b', flexWrap: 'wrap',
+        }}>
+          <p style={{ fontSize: '13px', color: '#334155' }}>
             © {new Date().getFullYear()} ProGear Inc. All rights reserved.
           </p>
-
-          {/* Social links */}
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {socials.map((s) => {
               const Icon = s.icon;
               return (
@@ -144,27 +142,33 @@ export function Footer() {
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-600 hover:text-white transition-all duration-200 hover:scale-110"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.07)',
+                    width: '34px', height: '34px', borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#475569', background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid #1e293b', textDecoration: 'none', transition: 'all 0.15s',
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(139,92,246,0.2)';
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(139,92,246,0.35)';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#93c5fd';
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = '#3b82f6';
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)';
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#475569';
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = '#1e293b';
                   }}
                 >
-                  <Icon size={16} />
+                  <Icon size={15} />
                 </a>
               );
             })}
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 560px) { .footer-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
     </footer>
   );
 }

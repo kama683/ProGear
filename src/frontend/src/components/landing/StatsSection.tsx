@@ -11,7 +11,6 @@ const stats = [
 
 function useCounter(target: number, duration: number, active: boolean) {
   const [count, setCount] = useState(0);
-
   useEffect(() => {
     if (!active) return;
     let startTimestamp: number | null = null;
@@ -25,73 +24,39 @@ function useCounter(target: number, duration: number, active: boolean) {
     };
     requestAnimationFrame(step);
   }, [active, target, duration]);
-
   return count;
 }
 
-function StatCard({
-  icon: Icon,
-  value,
-  suffix,
-  label,
-  sub,
-  index,
-  active,
-}: (typeof stats)[0] & { index: number; active: boolean }) {
+function StatCard({ icon: Icon, value, suffix, label, sub, index, active }: (typeof stats)[0] & { index: number; active: boolean }) {
   const count = useCounter(value, 2000 + index * 200, active);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={active ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.12 }}
-      className="relative group"
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      style={{
+        background: 'white', border: '1px solid #e2e8f0', borderRadius: '16px',
+        padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+        textAlign: 'center', gap: '16px', transition: 'box-shadow 0.2s',
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}
     >
-      <div
-        className="relative p-[1px] rounded-2xl transition-all duration-500"
-        style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))' }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.background = 'linear-gradient(135deg, rgba(139,92,246,0.5), rgba(217,70,239,0.2))';
-          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 60px rgba(139,92,246,0.2)';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))';
-          (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-        }}
-      >
-        <div
-          className="rounded-2xl px-8 py-10 flex flex-col items-center text-center gap-5"
-          style={{ background: 'rgba(10,10,20,0.8)', backdropFilter: 'blur(20px)' }}
-        >
-          {/* Icon */}
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-            style={{
-              background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(217,70,239,0.1))',
-              border: '1px solid rgba(139,92,246,0.25)',
-            }}
-          >
-            <Icon size={22} className="text-violet-400" />
-          </div>
+      <div style={{
+        width: '44px', height: '44px', borderRadius: '12px',
+        background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon size={20} style={{ color: '#3b82f6' }} />
+      </div>
 
-          {/* Counter */}
-          <div>
-            <div className="text-5xl font-black text-white leading-none tracking-tight">
-              {count}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #a78bfa, #ec4899)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                {suffix}
-              </span>
-            </div>
-            <div className="text-base font-bold text-zinc-200 mt-3">{label}</div>
-            <div className="text-sm text-zinc-500 mt-1">{sub}</div>
-          </div>
+      <div>
+        <div style={{ fontSize: '44px', fontWeight: '900', color: '#0f172a', lineHeight: '1', letterSpacing: '-2px' }}>
+          {count}
+          <span style={{ color: '#3b82f6' }}>{suffix}</span>
         </div>
+        <div style={{ fontSize: '15px', fontWeight: '700', color: '#1e293b', marginTop: '10px' }}>{label}</div>
+        <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>{sub}</div>
       </div>
     </motion.div>
   );
@@ -102,43 +67,34 @@ export function StatsSection() {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section id="stats" className="relative py-32 overflow-hidden" style={{ background: '#0A0A0F' }}>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.08) 0%, transparent 65%)' }}
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="stats" style={{ background: 'white', padding: '96px 0', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
         <motion.div
           ref={ref}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          style={{ textAlign: 'center', marginBottom: '56px' }}
         >
-          <span className="text-sm font-semibold text-violet-400 tracking-[0.2em] uppercase mb-4 block">
+          <span style={{ fontSize: '12px', fontWeight: '700', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
             By the Numbers
           </span>
-          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black text-white tracking-tight">
-            ProGear{' '}
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #a78bfa, #ec4899)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              at a Glance
-            </span>
+          <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: '900', color: '#0f172a', marginTop: '12px', letterSpacing: '-1px' }}>
+            ProGear at a Glance
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="stats-grid">
           {stats.map((stat, i) => (
             <StatCard key={stat.label} {...stat} index={i} active={isInView} />
           ))}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
     </section>
   );
 }

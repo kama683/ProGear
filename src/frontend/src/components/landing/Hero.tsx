@@ -1,213 +1,159 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronDown, Star } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { Camera3D } from './Camera3D';
 
 export function Hero() {
-  const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    setMouse({
-      x: e.clientX / window.innerWidth,
-      y: e.clientY / window.innerHeight,
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove]);
-
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0A0A0F 0%, #0d0d1a 50%, #0A0A0F 100%)' }}
+      style={{
+        background: 'white',
+        borderBottom: '1px solid #e2e8f0',
+        paddingTop: '80px',
+      }}
     >
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 24px 60px' }}>
         <div
-          className="absolute animate-blob"
           style={{
-            width: '700px', height: '700px',
-            top: '-200px', left: '-150px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)',
-            filter: 'blur(80px)',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '64px',
+            alignItems: 'center',
+            minHeight: '480px',
           }}
-        />
-        <div
-          className="absolute animate-blob-delayed"
-          style={{
-            width: '600px', height: '600px',
-            top: '20%', right: '-120px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-        <div
-          className="absolute animate-blob"
-          style={{
-            width: '500px', height: '500px',
-            bottom: '-120px', left: '35%',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-            animationDelay: '4s',
-          }}
-        />
-        {/* Subtle dot grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(139,92,246,0.8) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full pt-28 pb-20">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-8 items-center min-h-[calc(100vh-200px)]">
-
-          {/* Left: Text content */}
-          <div className="flex flex-col gap-8">
-            {/* Rating badge */}
+          className="hero-grid"
+        >
+          {/* Left: text */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            {/* Badge */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="flex items-center gap-3"
+              transition={{ duration: 0.5 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}
             >
               <span
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-violet-300 border border-violet-500/30"
-                style={{ background: 'rgba(139,92,246,0.1)' }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '5px 12px', borderRadius: '20px', fontSize: '12px',
+                  fontWeight: '600', color: '#2563eb',
+                  background: '#eff6ff', border: '1px solid #bfdbfe',
+                }}
               >
-                <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse-slow" />
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }} />
                 Professional Cinema Gear
               </span>
-              <span className="flex items-center gap-1 text-sm text-zinc-500">
-                <Star size={13} className="text-amber-400 fill-amber-400" />
-                <Star size={13} className="text-amber-400 fill-amber-400" />
-                <Star size={13} className="text-amber-400 fill-amber-400" />
-                <Star size={13} className="text-amber-400 fill-amber-400" />
-                <Star size={13} className="text-amber-400 fill-amber-400" />
-                <span className="ml-1 text-zinc-400">4.9</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#64748b' }}>
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={12} style={{ fill: '#f59e0b', color: '#f59e0b' }} />
+                ))}
+                <span style={{ marginLeft: '4px', fontWeight: '600' }}>4.9</span>
               </span>
             </motion.div>
 
-            {/* Main headline */}
+            {/* Headline */}
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="text-5xl sm:text-6xl lg:text-7xl xl:text-[82px] font-black leading-[0.92] tracking-tight text-white"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              style={{
+                fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: '900',
+                lineHeight: '1', letterSpacing: '-2px', color: '#0f172a',
+              }}
             >
-              Rent or Buy
-              <span
-                className="block mt-2"
-                style={{
-                  background: 'linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #22d3ee 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                Pro Video
-              </span>
-              <span className="text-zinc-300">Gear.</span>
+              Rent or Buy<br />
+              <span style={{ color: '#3b82f6' }}>Pro Video</span><br />
+              <span style={{ color: '#334155' }}>Gear.</span>
             </motion.h1>
 
             {/* Subtitle */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35 }}
-              className="text-lg lg:text-xl text-zinc-400 leading-relaxed max-w-lg font-light"
+              transition={{ duration: 0.5, delay: 0.2 }}
+              style={{ fontSize: '16px', color: '#64748b', lineHeight: '1.7', maxWidth: '440px' }}
             >
-              Access cinema-grade cameras, lenses, stabilizers and lighting — available for
-              daily rental or outright purchase. Trusted by filmmakers worldwide.
+              Access cinema-grade cameras, lenses, stabilizers and lighting —
+              available for daily rental or outright purchase. Trusted by filmmakers worldwide.
             </motion.p>
 
-            {/* CTA buttons */}
+            {/* CTA */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex flex-wrap gap-4"
+              transition={{ duration: 0.5, delay: 0.3 }}
+              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}
             >
               <Link
                 to="/register"
-                className="group inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-2xl transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)]"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '12px 24px', fontSize: '15px', fontWeight: '700',
+                  color: 'white', background: '#3b82f6', borderRadius: '10px',
+                  textDecoration: 'none', transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = '#2563eb'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = '#3b82f6'; }}
               >
                 Start for Free
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
+                <ArrowRight size={16} />
               </Link>
               <button
                 onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-zinc-300 hover:text-white border border-white/10 hover:border-violet-500/40 rounded-2xl transition-all duration-300 hover:bg-violet-500/5 hover:scale-[1.03]"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '12px 24px', fontSize: '15px', fontWeight: '600',
+                  color: '#374151', background: 'white', border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px', cursor: 'pointer', transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#94a3b8'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; }}
               >
                 Browse Catalog
               </button>
             </motion.div>
 
-            {/* Trust indicators */}
+            {/* Stats row */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="flex items-center gap-8 pt-2"
+              transition={{ duration: 0.5, delay: 0.5 }}
+              style={{ display: 'flex', gap: '32px', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}
             >
               {[
                 { value: '500+', label: 'Gear items' },
                 { value: '5 yrs', label: 'Experience' },
                 { value: '1000+', label: 'Happy clients' },
               ].map((item) => (
-                <div key={item.value} className="flex flex-col gap-0.5">
-                  <span
-                    className="text-2xl font-black"
-                    style={{
-                      background: 'linear-gradient(135deg, #a78bfa, #ec4899)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}
-                  >
-                    {item.value}
-                  </span>
-                  <span className="text-xs text-zinc-500 font-medium">{item.label}</span>
+                <div key={item.value}>
+                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#3b82f6', letterSpacing: '-0.5px' }}>{item.value}</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500', marginTop: '2px' }}>{item.label}</div>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* Right: 3D Camera */}
+          {/* Right: Camera */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, x: 40 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: 'easeOut' }}
-            className="relative h-[400px] lg:h-[500px] flex items-center justify-center"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            style={{
+              height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg, #f0f9ff, #eff6ff)',
+              borderRadius: '20px', border: '1px solid #e0f2fe', overflow: 'hidden',
+            }}
           >
-            <Camera3D mouseX={mouse.x} mouseY={mouse.y} />
+            <Camera3D mouseX={0.5} mouseY={0.5} />
           </motion.div>
         </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4, duration: 0.6 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
-        >
-          <button
-            onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex flex-col items-center gap-1.5 text-zinc-600 hover:text-zinc-400 transition-colors"
-          >
-            <span className="text-[10px] font-semibold tracking-[0.2em] uppercase">Scroll</span>
-            <ChevronDown size={18} className="animate-bounce" />
-          </button>
-        </motion.div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+        }
+      `}</style>
     </section>
   );
 }
