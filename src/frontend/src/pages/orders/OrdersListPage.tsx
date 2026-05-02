@@ -108,7 +108,36 @@ export function OrdersListPage() {
                     </Badge>
                   </td>
                   <td><span className="font-bold">{formatCurrency(order.TotalAmount)}</span></td>
-                  <td className="text-muted">{order.Items?.length ?? '—'}</td>
+                  <td>
+                    {order.Items && order.Items.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {order.Items.slice(0, 2).map(item => (
+                          <div key={item.ID} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                              background: item.ItemType === 'rental' ? 'var(--color-primary-light)' : 'var(--color-success-light)',
+                              color: item.ItemType === 'rental' ? 'var(--color-primary)' : 'var(--color-success)',
+                            }}>
+                              {item.ItemType === 'rental' ? 'Rent' : 'Buy'}
+                            </span>
+                            <span style={{ fontSize: 13, fontWeight: 500 }}>
+                              {item.EquipmentName}
+                            </span>
+                            {item.Quantity > 1 && (
+                              <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>×{item.Quantity}</span>
+                            )}
+                          </div>
+                        ))}
+                        {order.Items.length > 2 && (
+                          <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                            +{order.Items.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
                   <td className="text-muted text-sm">{formatDateTime(order.CreatedAt)}</td>
                   <td>
                     <button

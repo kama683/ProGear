@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { X, Trash2, ShoppingBag, ArrowRight, CreditCard, ChevronDown } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { createOrder } from '../../api/orders';
+import { listCards } from '../../api/cards';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency, toLocalDatetimeInput } from '../../utils/format';
 import { Spinner } from '../ui/Spinner';
+import { CardFormModal } from '../cards/CardFormModal';
+import { SavedCardsList } from '../cards/SavedCardsList';
+import type { PaymentCard } from '../../types/api';
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateItem, clearCart, totalItems } = useCart();
@@ -13,6 +18,19 @@ export function CartDrawer() {
   const { success, error: toastError } = useToast();
   const qc = useQueryClient();
   const now = toLocalDatetimeInput(new Date());
+
+  const [selectedCard, setSelectedCard] = useState<PaymentCard | null>(null);
+  const [showCardPicker, setShowCardPicker] = useState(false);
+  const [addCardOpen, setAddCardOpen] = useState(false);
+
+  const { data: cards = [] } = useQuery({
+    queryKey: ['cards'],
+    queryFn: listCards,
+    enabled: isOpen,
+  });
+
+  const defaultCard = cards.find(c => c.IsDefault) ?? cards[0] ?? null;
+  const activeCard = selectedCard ?? defaultCard;
 
   const totalAmount = items.reduce((sum, item) => {
     const price = item.itemType === 'rental' ? parseFloat(item.dailyRate) || 0 : parseFloat(item.salePrice) || 0;
@@ -47,12 +65,30 @@ export function CartDrawer() {
         return;
       }
     }
+    if (!activeCard) {
+      setAddCardOpen(true);
+      return;
+    }
     mutation.mutate();
   }
 
+  function handleCardAdded(cardId: number) {
+    qc.invalidateQueries({ queryKey: ['cards'] }).then(() => {
+      const found = cards.find(c => c.ID === cardId);
+      if (found) setSelectedCard(found);
+    });
+  }
+
+  const cardGradient: Record<string, string> = {
+    visa: 'linear-gradient(90deg, #1a1f71 0%, #2d6cdf 100%)',
+    mastercard: 'linear-gradient(90deg, #1c1c1c 0%, #eb001b 100%)',
+    amex: 'linear-gradient(90deg, #007bc1 0%, #00b4d8 100%)',
+    discover: 'linear-gradient(90deg, #e65c00 0%, #f9d423 100%)',
+    unknown: 'linear-gradient(90deg, #2c2c3e 0%, #4a4a6a 100%)',
+  };
+
   return (
     <>
-      {/* Overlay */}
       {isOpen && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 200 }}
@@ -60,7 +96,6 @@ export function CartDrawer() {
         />
       )}
 
-      {/* Drawer */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '100vw',
         background: 'var(--color-surface)', boxShadow: '-4px 0 32px rgba(0,0,0,0.15)',
@@ -162,10 +197,79 @@ export function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            {/* Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Estimated total</span>
               <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(totalAmount)}</span>
             </div>
+
+            {/* Payment card selector */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Payment card</div>
+
+              {activeCard ? (
+                <div>
+                  <button
+                    onClick={() => setShowCardPicker(p => !p)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 12px', borderRadius: 'var(--radius)',
+                      border: '1.5px solid var(--color-border)', background: 'var(--color-surface)',
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                  >
+                    {/* Mini card chip */}
+                    <div style={{
+                      width: 40, height: 26, borderRadius: 4, flexShrink: 0,
+                      background: cardGradient[activeCard.CardType] ?? cardGradient.unknown,
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                      padding: '0 5px',
+                    }}>
+                      <span style={{ color: '#fff', fontSize: 8, fontFamily: 'monospace' }}>••{activeCard.LastFour}</span>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>•••• {activeCard.LastFour}</span>
+                      <span style={{ color: 'var(--color-text-muted)', fontSize: 12, marginLeft: 6 }}>
+                        {String(activeCard.ExpiryMonth).padStart(2, '0')}/{String(activeCard.ExpiryYear).slice(-2)}
+                      </span>
+                    </div>
+                    <ChevronDown size={14} style={{ color: 'var(--color-text-muted)', transform: showCardPicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                  </button>
+
+                  {showCardPicker && (
+                    <div style={{
+                      border: '1px solid var(--color-border)', borderRadius: 'var(--radius)',
+                      marginTop: 6, padding: 10, background: 'var(--color-surface)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                    }}>
+                      <SavedCardsList
+                        cards={cards}
+                        selectable
+                        selectedId={activeCard.ID}
+                        onSelect={c => { setSelectedCard(c); setShowCardPicker(false); }}
+                        showActions={false}
+                      />
+                      <button
+                        className="btn btn-ghost btn-sm btn-full"
+                        style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13 }}
+                        onClick={() => { setShowCardPicker(false); setAddCardOpen(true); }}
+                      >
+                        <CreditCard size={13} /> Add new card
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className="btn btn-secondary btn-full"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13 }}
+                  onClick={() => setAddCardOpen(true)}
+                >
+                  <CreditCard size={14} /> Add payment card
+                </button>
+              )}
+            </div>
+
             <button
               className="btn btn-primary btn-full"
               onClick={handleCheckout}
@@ -173,11 +277,17 @@ export function CartDrawer() {
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {mutation.isPending ? <Spinner size="sm" white /> : <ArrowRight size={16} />}
-              {mutation.isPending ? 'Placing order...' : 'Place Order'}
+              {mutation.isPending ? 'Placing order...' : activeCard ? `Pay with ••••${activeCard.LastFour}` : 'Place Order'}
             </button>
           </div>
         )}
       </div>
+
+      <CardFormModal
+        open={addCardOpen}
+        onClose={() => setAddCardOpen(false)}
+        onSuccess={handleCardAdded}
+      />
     </>
   );
 }

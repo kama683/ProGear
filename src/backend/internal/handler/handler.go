@@ -11,6 +11,7 @@ type Handler struct {
 	Rentals   *RentalHandler
 	Orders    *OrderHandler
 	Reviews   *ReviewHandler
+	Cards     *CardHandler
 }
 
 func NewHandler(svc *service.Services) *Handler {
@@ -21,5 +22,6 @@ func NewHandler(svc *service.Services) *Handler {
 		Rentals:   NewRentalHandler(svc),
 		Orders:    NewOrderHandler(svc),
 		Reviews:   NewReviewHandler(svc),
+		Cards:     NewCardHandler(svc),
 	}
 }

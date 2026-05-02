@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Edit, Calendar, Package, Hash, Heart, ShoppingBag, CheckCircle, ImageOff, ChevronLeft, ChevronRight, MapPin, ExternalLink } from 'lucide-react';
 import { getEquipment } from '../../api/equipment';
 import { checkAvailability, calculateRental, bookRental } from '../../api/rentals';
+import { createOrder } from '../../api/orders';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -26,13 +27,20 @@ export function EquipmentDetailPage() {
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [startAt, setStartAt] = useState('');
-  const [endAt, setEndAt] = useState('');
+  const [duration, setDuration] = useState(1);
   const [mode, setMode] = useState<'day' | 'hour'>('day');
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
   const [calcResult, setCalcResult] = useState<CalculateResponse | null>(null);
   const [booking, setBooking] = useState<BookingResponse | null>(null);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcError, setCalcError] = useState('');
+
+  function computeEndAt(start: string): string {
+    if (!start || duration <= 0) return '';
+    const ms = duration * (mode === 'hour' ? 3_600_000 : 86_400_000);
+    return new Date(new Date(start).getTime() + ms).toISOString();
+  }
 
   const { data: eq, isLoading } = useQuery({
     queryKey: ['equipment', Number(id)],
@@ -41,26 +49,41 @@ export function EquipmentDetailPage() {
   });
 
   const bookMutation = useMutation({
-    mutationFn: bookRental,
-    onSuccess: (res) => {
-      setBooking(res);
-      success('Booking confirmed!', `Booking ID: #${res.ReservationID}`);
+    mutationFn: async (data: Parameters<typeof bookRental>[0]) => {
+      const booking = await bookRental(data);
+      const order = await createOrder({
+        Items: [{
+          ItemType: 'rental',
+          EquipmentID: booking.EquipmentId,
+          Quantity: 1,
+          ReservationID: booking.ReservationID,
+        }],
+      });
+      return { booking, order };
+    },
+    onSuccess: ({ booking, order }) => {
+      setBooking(booking);
+      setOrderId(order.ID);
+      success('Booking confirmed!', `Order #${order.ID} created`);
       qc.invalidateQueries({ queryKey: ['orders'] });
     },
     onError: (err: Error) => setCalcError(err.message),
   });
 
   async function handleCheck() {
-    if (!startAt || !endAt || !id) return;
-    if (new Date(endAt) <= new Date(startAt)) {
-      setCalcError('End date must be after start date');
+    if (!startAt || duration <= 0 || !id) return;
+    if (new Date(startAt) <= new Date()) {
+      setCalcError('Rental start time cannot be in the past');
       return;
     }
+    const endAtISO = computeEndAt(startAt);
+    if (!endAtISO) return;
     setChecking(true); setCalcError(''); setAvailability(null); setCalcResult(null);
     try {
+      const startISO = new Date(startAt).toISOString();
       const [avail, calc] = await Promise.all([
-        checkAvailability(Number(id), new Date(startAt).toISOString(), new Date(endAt).toISOString()),
-        calculateRental({ EquipmentId: Number(id), StartAt: new Date(startAt).toISOString(), EndAt: new Date(endAt).toISOString(), Mode: mode }),
+        checkAvailability(Number(id), startISO, endAtISO),
+        calculateRental({ EquipmentId: Number(id), StartAt: startISO, EndAt: endAtISO, Mode: mode }),
       ]);
       setAvailability(avail); setCalcResult(calc);
     } catch (err: unknown) {
@@ -75,8 +98,9 @@ export function EquipmentDetailPage() {
     setAvailability(null);
     setCalcResult(null);
     setStartAt('');
-    setEndAt('');
+    setDuration(1);
     setCalcError('');
+    setOrderId(null);
   }
 
   if (isLoading) return <LoadingCenter />;
@@ -250,10 +274,16 @@ export function EquipmentDetailPage() {
                   </div>
                 </div>
                 {(eq.Type === 'rental' || eq.Type === 'both') && (
-                  <div className="detail-item">
-                    <div className="detail-label">Rental / day</div>
-                    <div className="detail-value price">{formatCurrency(eq.DailyRate)}</div>
-                  </div>
+                  <>
+                    <div className="detail-item">
+                      <div className="detail-label">Rental / day</div>
+                      <div className="detail-value price">{formatCurrency(eq.DailyRate)}</div>
+                    </div>
+                    <div className="detail-item">
+                      <div className="detail-label">Rental / hour</div>
+                      <div className="detail-value price">{formatCurrency(eq.HourlyRate)}</div>
+                    </div>
+                  </>
                 )}
                 {(eq.Type === 'sale' || eq.Type === 'both') && (
                   <div className="detail-item">
@@ -350,17 +380,21 @@ export function EquipmentDetailPage() {
                   <CheckCircle size={32} color="var(--color-success)" />
                 </div>
                 <h3 style={{ marginBottom: 6 }}>Booking Confirmed!</h3>
-                <p className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>A unit has been reserved for you</p>
+                <p className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>
+                  Reservation and order created successfully
+                </p>
 
                 <div className="detail-grid" style={{ textAlign: 'left', marginBottom: 16 }}>
                   <div className="detail-item">
                     <div className="detail-label">Booking ID</div>
                     <div className="detail-value" style={{ fontWeight: 700 }}>#{booking.ReservationID}</div>
                   </div>
-                  <div className="detail-item">
-                    <div className="detail-label">Status</div>
-                    <div className="detail-value" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{booking.Status}</div>
-                  </div>
+                  {orderId && (
+                    <div className="detail-item">
+                      <div className="detail-label">Order</div>
+                      <div className="detail-value" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>#{orderId}</div>
+                    </div>
+                  )}
                   <div className="detail-item">
                     <div className="detail-label">Start</div>
                     <div className="detail-value">{formatDateTime(booking.StartAt)}</div>
@@ -380,12 +414,11 @@ export function EquipmentDetailPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
-                  <button
-                    className="btn btn-primary btn-full"
-                    onClick={() => navigate('/orders/new', { state: { reservationId: booking.ReservationID, equipmentId: booking.EquipmentId } })}
-                  >
-                    Create Order
-                  </button>
+                  {orderId && (
+                    <button className="btn btn-primary btn-full" onClick={() => navigate(`/orders/${orderId}`)}>
+                      View Order #{orderId}
+                    </button>
+                  )}
                   <button className="btn btn-secondary btn-full" onClick={() => navigate('/orders')}>
                     My Orders
                   </button>
@@ -404,31 +437,67 @@ export function EquipmentDetailPage() {
                   <div className="form-group">
                     <label className="form-label required">Rental Start</label>
                     <input
-                      type="datetime-local" className="form-input" min={minStart}
+                      type="datetime-local"
+                      className={`form-input${startAt && new Date(startAt) <= new Date() ? ' error' : ''}`}
+                      min={minStart}
                       value={startAt}
-                      onChange={e => { setStartAt(e.target.value); setAvailability(null); setCalcResult(null); }}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setStartAt(val);
+                        setAvailability(null);
+                        setCalcResult(null);
+                        if (val && new Date(val) <= new Date()) {
+                          setCalcError('Start time cannot be in the past');
+                        } else {
+                          setCalcError('');
+                        }
+                      }}
                     />
+                    {startAt && new Date(startAt) <= new Date() && (
+                      <div className="form-error">Choose a future date and time</div>
+                    )}
                   </div>
+
                   <div className="form-group">
-                    <label className="form-label required">Rental End</label>
-                    <input
-                      type="datetime-local" className="form-input" min={startAt || minStart}
-                      value={endAt}
-                      onChange={e => { setEndAt(e.target.value); setAvailability(null); setCalcResult(null); }}
-                    />
+                    <label className="form-label required">Duration</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="number" className="form-input" min={1} max={365}
+                        value={duration}
+                        onChange={e => { setDuration(Math.max(1, Number(e.target.value))); setAvailability(null); setCalcResult(null); }}
+                        style={{ flex: 1, fontWeight: 600 }}
+                      />
+                      <select
+                        className="form-input form-select"
+                        style={{ flex: 1.4 }}
+                        value={mode}
+                        onChange={e => { setMode(e.target.value as 'day' | 'hour'); setAvailability(null); setCalcResult(null); }}
+                      >
+                        <option value="hour">{duration === 1 ? 'Hour' : 'Hours'}</option>
+                        <option value="day">{duration === 1 ? 'Day' : 'Days'}</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Calculation Mode</label>
-                    <select className="form-input form-select" value={mode} onChange={e => setMode(e.target.value as 'day' | 'hour')}>
-                      <option value="day">By Days</option>
-                      <option value="hour">By Hours</option>
-                    </select>
-                  </div>
+
+                  {startAt && duration > 0 && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '8px 12px', borderRadius: 'var(--radius)',
+                      background: 'var(--color-surface-2)', marginBottom: 4,
+                      fontSize: 13, color: 'var(--color-text-muted)',
+                    }}>
+                      <Calendar size={13} />
+                      <span>Returns: <strong style={{ color: 'var(--color-text)' }}>
+                        {new Date(new Date(startAt).getTime() + duration * (mode === 'hour' ? 3_600_000 : 86_400_000))
+                          .toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </strong></span>
+                    </div>
+                  )}
 
                   <button
                     className="btn btn-primary btn-full"
                     onClick={handleCheck}
-                    disabled={checking || !startAt || !endAt}
+                    disabled={checking || !startAt || duration <= 0}
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                   >
                     {checking ? <Spinner size="sm" white /> : <Calendar size={15} />}
@@ -465,7 +534,7 @@ export function EquipmentDetailPage() {
                           onClick={() => bookMutation.mutate({
                             EquipmentID: Number(id),
                             StartAt: new Date(startAt).toISOString(),
-                            EndAt: new Date(endAt).toISOString(),
+                            EndAt: computeEndAt(startAt),
                           })}
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                         >

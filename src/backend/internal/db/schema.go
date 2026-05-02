@@ -107,6 +107,18 @@ func InitSchema(db *sql.DB) error {
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE equipment ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';`,
+		`CREATE TABLE IF NOT EXISTS payment_cards (
+			id BIGSERIAL PRIMARY KEY,
+			user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			cardholder_name TEXT NOT NULL,
+			last_four TEXT NOT NULL,
+			expiry_month INTEGER NOT NULL,
+			expiry_year INTEGER NOT NULL,
+			card_type TEXT NOT NULL DEFAULT 'unknown',
+			is_default BOOLEAN NOT NULL DEFAULT FALSE,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_payment_cards_user_id ON payment_cards(user_id);`,
 		// Auto-create missing equipment_units for equipment that has quantity > 0 but no unit rows.
 		// This repairs data created before the auto-create fix was introduced.
 		`INSERT INTO equipment_units (equipment_id, serial_number, status)

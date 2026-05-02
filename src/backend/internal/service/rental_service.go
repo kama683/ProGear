@@ -200,6 +200,9 @@ func (s *rentalService) calculateAmount(equipmentID uint, startAt, endAt time.Ti
 	if err != nil {
 		return 0, fmt.Errorf("get pricing: %w", err)
 	}
+	if hourlyRate == 0 && dailyRate > 0 {
+		hourlyRate = roundCurrency(dailyRate / 5)
+	}
 	return calculateByMode(startAt, endAt, mode, dailyRate, hourlyRate), nil
 }
 
@@ -208,6 +211,9 @@ func (s *rentalService) calculateAmountTx(tx *sql.Tx, equipmentID uint, startAt,
 	err := tx.QueryRow(`SELECT daily_rate, hourly_rate FROM equipment WHERE id = $1`, equipmentID).Scan(&dailyRate, &hourlyRate)
 	if err != nil {
 		return 0, fmt.Errorf("get pricing: %w", err)
+	}
+	if hourlyRate == 0 && dailyRate > 0 {
+		hourlyRate = roundCurrency(dailyRate / 5)
 	}
 	return calculateByMode(startAt, endAt, mode, dailyRate, hourlyRate), nil
 }

@@ -25,7 +25,9 @@ func NewEquipmentService(db *sql.DB) EquipmentService {
 
 func (s *equipmentService) List(filterType, category string) ([]dto.EquipmentResponse, error) {
 	query := `
-		SELECT id, name, category, description, type, daily_rate, sale_price, quantity, address, created_at, updated_at
+		SELECT id, name, category, description, type, daily_rate,
+		       CASE WHEN hourly_rate = 0 AND daily_rate > 0 THEN ROUND(daily_rate / 5, 2) ELSE hourly_rate END,
+		       sale_price, quantity, address, created_at, updated_at
 		FROM equipment
 		WHERE ($1 = '' OR type = $1)
 		AND ($2 = '' OR category = $2)
@@ -42,7 +44,7 @@ func (s *equipmentService) List(filterType, category string) ([]dto.EquipmentRes
 		var e dto.EquipmentResponse
 		if err := rows.Scan(
 			&e.ID, &e.Name, &e.Category, &e.Description, &e.Type,
-			&e.DailyRate, &e.SalePrice, &e.Quantity, &e.Address,
+			&e.DailyRate, &e.HourlyRate, &e.SalePrice, &e.Quantity, &e.Address,
 			&e.CreatedAt, &e.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan equipment: %w", err)
@@ -75,11 +77,13 @@ func (s *equipmentService) fetchImages(equipmentID uint) []string {
 func (s *equipmentService) GetByID(id uint) (dto.EquipmentDetailResponse, error) {
 	var e dto.EquipmentDetailResponse
 	err := s.db.QueryRow(`
-		SELECT id, name, category, description, type, daily_rate, sale_price, quantity, address, created_at, updated_at
+		SELECT id, name, category, description, type, daily_rate,
+		       CASE WHEN hourly_rate = 0 AND daily_rate > 0 THEN ROUND(daily_rate / 5, 2) ELSE hourly_rate END,
+		       sale_price, quantity, address, created_at, updated_at
 		FROM equipment WHERE id = $1
 	`, id).Scan(
 		&e.ID, &e.Name, &e.Category, &e.Description, &e.Type,
-		&e.DailyRate, &e.SalePrice, &e.Quantity, &e.Address,
+		&e.DailyRate, &e.HourlyRate, &e.SalePrice, &e.Quantity, &e.Address,
 		&e.CreatedAt, &e.UpdatedAt,
 	)
 	if err != nil {
@@ -125,21 +129,24 @@ func (s *equipmentService) Create(req dto.EquipmentCreateRequest) (dto.Equipment
 
 	var out dto.EquipmentResponse
 	err = tx.QueryRow(`
-		INSERT INTO equipment(name, category, description, type, daily_rate, sale_price, quantity, address)
-		VALUES($1,$2,$3,$4,$5,$6,$7,$8)
-		RETURNING id, name, category, description, type, daily_rate, sale_price, quantity, address, created_at, updated_at
+		INSERT INTO equipment(name, category, description, type, daily_rate, hourly_rate, sale_price, quantity, address)
+		VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING id, name, category, description, type, daily_rate,
+		          CASE WHEN hourly_rate = 0 AND daily_rate > 0 THEN ROUND(daily_rate / 5, 2) ELSE hourly_rate END,
+		          sale_price, quantity, address, created_at, updated_at
 	`,
 		strings.TrimSpace(req.Name),
 		strings.TrimSpace(req.Category),
 		strings.TrimSpace(req.Description),
 		strings.TrimSpace(req.Type),
 		req.DailyRate,
+		req.HourlyRate,
 		req.SalePrice,
 		req.Quantity,
 		strings.TrimSpace(req.Address),
 	).Scan(
 		&out.ID, &out.Name, &out.Category, &out.Description, &out.Type,
-		&out.DailyRate, &out.SalePrice, &out.Quantity, &out.Address,
+		&out.DailyRate, &out.HourlyRate, &out.SalePrice, &out.Quantity, &out.Address,
 		&out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
@@ -205,12 +212,13 @@ func (s *equipmentService) Update(id uint, req dto.EquipmentUpdateRequest) (dto.
 			description = COALESCE($4, description),
 			type        = COALESCE($5, type),
 			daily_rate  = COALESCE($6, daily_rate),
-			sale_price  = COALESCE($7, sale_price),
-			quantity    = COALESCE($8, quantity),
-			address     = COALESCE($9, address),
+			hourly_rate = COALESCE($7, hourly_rate),
+			sale_price  = COALESCE($8, sale_price),
+			quantity    = COALESCE($9, quantity),
+			address     = COALESCE($10, address),
 			updated_at  = NOW()
 		WHERE id = $1
-	`, id, req.Name, req.Category, req.Description, req.Type, req.DailyRate, req.SalePrice, req.Quantity, req.Address); err != nil {
+	`, id, req.Name, req.Category, req.Description, req.Type, req.DailyRate, req.HourlyRate, req.SalePrice, req.Quantity, req.Address); err != nil {
 		return dto.EquipmentResponse{}, fmt.Errorf("update equipment: %w", err)
 	}
 
@@ -267,11 +275,13 @@ func (s *equipmentService) Update(id uint, req dto.EquipmentUpdateRequest) (dto.
 
 	var out dto.EquipmentResponse
 	if err := s.db.QueryRow(`
-		SELECT id, name, category, description, type, daily_rate, sale_price, quantity, address, created_at, updated_at
+		SELECT id, name, category, description, type, daily_rate,
+		       CASE WHEN hourly_rate = 0 AND daily_rate > 0 THEN ROUND(daily_rate / 5, 2) ELSE hourly_rate END,
+		       sale_price, quantity, address, created_at, updated_at
 		FROM equipment WHERE id = $1
 	`, id).Scan(
 		&out.ID, &out.Name, &out.Category, &out.Description, &out.Type,
-		&out.DailyRate, &out.SalePrice, &out.Quantity, &out.Address,
+		&out.DailyRate, &out.HourlyRate, &out.SalePrice, &out.Quantity, &out.Address,
 		&out.CreatedAt, &out.UpdatedAt,
 	); err != nil {
 		return dto.EquipmentResponse{}, fmt.Errorf("get equipment after update: %w", err)

@@ -10,13 +10,13 @@ import type { EquipmentType } from '../../types/api';
 
 interface FormData {
   Name: string; Category: string; Description: string; Type: string;
-  DailyRate: string; SalePrice: string; Quantity: string;
+  DailyRate: string; HourlyRate: string; SalePrice: string; Quantity: string;
   Address: string; Serials: string[]; Images: string[];
 }
 
 const empty: FormData = {
   Name: '', Category: '', Description: '', Type: 'rental',
-  DailyRate: '', SalePrice: '', Quantity: '1',
+  DailyRate: '', HourlyRate: '', SalePrice: '', Quantity: '1',
   Address: '', Serials: [], Images: [],
 };
 
@@ -42,7 +42,9 @@ export function EquipmentFormPage() {
     if (existing && isEdit) {
       setForm({
         Name: existing.Name, Category: existing.Category, Description: existing.Description,
-        Type: existing.Type, DailyRate: existing.DailyRate, SalePrice: existing.SalePrice,
+        Type: existing.Type, DailyRate: existing.DailyRate,
+        HourlyRate: existing.HourlyRate ?? '',
+        SalePrice: existing.SalePrice,
         Quantity: String(existing.Quantity), Address: existing.Address ?? '',
         Serials: existing.Serials ?? [], Images: existing.Images ?? [],
       });
@@ -102,6 +104,7 @@ export function EquipmentFormPage() {
           Name: form.Name, Category: form.Category, Description: form.Description,
           Type: form.Type as EquipmentType,
           DailyRate: form.DailyRate ? parseFloat(form.DailyRate) : undefined,
+          HourlyRate: form.HourlyRate ? parseFloat(form.HourlyRate) : undefined,
           SalePrice: form.SalePrice ? parseFloat(form.SalePrice) : undefined,
           Quantity: qty,
           Address: form.Address || undefined,
@@ -115,6 +118,7 @@ export function EquipmentFormPage() {
         Name: form.Name, Category: form.Category, Description: form.Description,
         Type: form.Type as 'rental' | 'sale' | 'both',
         DailyRate: parseFloat(form.DailyRate) || 0,
+        HourlyRate: form.HourlyRate ? parseFloat(form.HourlyRate) : undefined,
         SalePrice: parseFloat(form.SalePrice) || 0,
         Quantity: qty,
         Address: form.Address || undefined,
@@ -186,11 +190,28 @@ export function EquipmentFormPage() {
             </div>
 
             {showRental && (
-              <div className="form-group">
-                <label className="form-label required">Daily Rental Rate</label>
-                <input type="number" className="form-input" placeholder="5000" min="0" step="0.01"
-                  value={form.DailyRate} onChange={e => update('DailyRate', e.target.value)} />
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label required">Daily Rental Rate</label>
+                  <input type="number" className="form-input" placeholder="5000" min="0" step="0.01"
+                    value={form.DailyRate} onChange={e => update('DailyRate', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Hourly Rental Rate</label>
+                  <input type="number" className="form-input"
+                    placeholder={form.DailyRate ? `Auto: ${(parseFloat(form.DailyRate) / 5).toFixed(0)} (daily ÷ 5)` : 'e.g. 1000'}
+                    min="0" step="0.01"
+                    value={form.HourlyRate} onChange={e => update('HourlyRate', e.target.value)} />
+                  <div className="form-hint">
+                    Optional. If left empty, hourly rate = daily rate ÷ 5
+                    {form.DailyRate && !form.HourlyRate && (
+                      <span style={{ color: 'var(--color-primary)', marginLeft: 4 }}>
+                        = {(parseFloat(form.DailyRate) / 5).toFixed(0)} per hour
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
 
             {showSale && (

@@ -4,7 +4,7 @@ export function formatCurrency(value: number | string): string {
 
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'UZS',
+    currency: 'USD',
     maximumFractionDigits: 0,
   }).format(num);
 }

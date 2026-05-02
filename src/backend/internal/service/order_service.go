@@ -200,6 +200,7 @@ func (s *orderService) Create(userID uint, req dto.OrderCreateRequest) (dto.Orde
 	respItems := make([]dto.OrderItemResponse, 0, len(prepared))
 	for _, p := range prepared {
 		var itemID uint
+		var equipmentName string
 		err := tx.QueryRow(`
 			INSERT INTO order_items(order_id, item_type, equipment_id, equipment_unit_id, quantity, unit_price, line_total, start_at, end_at)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -208,11 +209,13 @@ func (s *orderService) Create(userID uint, req dto.OrderCreateRequest) (dto.Orde
 		if err != nil {
 			return dto.OrderResponse{}, fmt.Errorf("create order item: %w", err)
 		}
+		_ = tx.QueryRow(`SELECT name FROM equipment WHERE id = $1`, p.equipmentID).Scan(&equipmentName)
 
 		respItems = append(respItems, dto.OrderItemResponse{
 			ID:              itemID,
 			ItemType:        p.itemType,
 			EquipmentID:     p.equipmentID,
+			EquipmentName:   equipmentName,
 			EquipmentUnitID: p.equipmentUnitID,
 			Quantity:        p.quantity,
 			UnitPrice:       p.unitPrice,
@@ -267,7 +270,67 @@ func (s *orderService) List(requesterID uint, requesterRole string) ([]dto.Order
 		}
 		orders = append(orders, o)
 	}
-	return orders, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(orders) > 0 {
+		ids := make([]uint, len(orders))
+		for i, o := range orders {
+			ids[i] = o.ID
+		}
+		itemsMap, err := s.fetchItemsForOrders(ids)
+		if err != nil {
+			return nil, err
+		}
+		for i := range orders {
+			items := itemsMap[orders[i].ID]
+			if items == nil {
+				items = []dto.OrderItemResponse{}
+			}
+			orders[i].Items = items
+		}
+	}
+	return orders, nil
+}
+
+func (s *orderService) fetchItemsForOrders(orderIDs []uint) (map[uint][]dto.OrderItemResponse, error) {
+	placeholders := make([]string, len(orderIDs))
+	args := make([]interface{}, len(orderIDs))
+	for i, id := range orderIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+	q := fmt.Sprintf(`
+		SELECT oi.id, oi.order_id, oi.item_type, oi.equipment_id, e.name,
+		       oi.equipment_unit_id, oi.quantity, oi.unit_price, oi.line_total,
+		       oi.start_at, oi.end_at
+		FROM order_items oi
+		JOIN equipment e ON e.id = oi.equipment_id
+		WHERE oi.order_id IN (%s)
+		ORDER BY oi.order_id, oi.id
+	`, strings.Join(placeholders, ","))
+
+	rows, err := s.db.Query(q, args...)
+	if err != nil {
+		return nil, fmt.Errorf("fetch order items: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[uint][]dto.OrderItemResponse)
+	for rows.Next() {
+		var item dto.OrderItemResponse
+		var orderID uint
+		if err := rows.Scan(
+			&item.ID, &orderID, &item.ItemType, &item.EquipmentID, &item.EquipmentName,
+			&item.EquipmentUnitID, &item.Quantity, &item.UnitPrice, &item.LineTotal,
+			&item.StartAt, &item.EndAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan order item: %w", err)
+		}
+		result[orderID] = append(result[orderID], item)
+	}
+	return result, rows.Err()
 }
 
 func (s *orderService) UpdateStatus(orderID uint, status string) (dto.OrderResponse, error) {

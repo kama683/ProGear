@@ -40,6 +40,7 @@ func main() {
 	}
 
 	svc := service.NewServices(cfg, dbConn)
+	service.StartScheduler(dbConn)
 	h := handler.NewHandler(svc)
 
 	app := fiber.New()
@@ -105,6 +106,12 @@ func main() {
 		orders.Get("", h.Orders.List)
 		orders.Patch("/:id/status", extensions.RequireRoles(constants.RoleAdmin, constants.RoleManager), h.Orders.UpdateStatus)
 		orders.Get("/:id/invoice", h.Orders.Invoice)
+
+		cards := v1.Group("/cards", extensions.FiberAuthMiddleware(cfg))
+		cards.Get("", h.Cards.List)
+		cards.Post("", h.Cards.Add)
+		cards.Delete("/:id", h.Cards.Delete)
+		cards.Put("/:id/default", h.Cards.SetDefault)
 	}
 
 	log.Fatal(app.Listen(fmt.Sprintf(":%d", cfg.AppPort)))

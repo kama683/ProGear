@@ -16,18 +16,19 @@ export interface LoginResponse { AccessToken: string; RefreshToken: string; User
 
 export interface Equipment {
   ID: number; Name: string; Category: string; Description: string;
-  Type: EquipmentType; DailyRate: string; SalePrice: string;
+  Type: EquipmentType; DailyRate: string; HourlyRate: string; SalePrice: string;
   Quantity: number; Address: string; Images: string[]; CreatedAt: string; UpdatedAt: string;
 }
 export interface EquipmentDetail extends Equipment { AvailableUnits: number; Serials: string[]; }
 export interface CreateEquipmentRequest {
   Name: string; Category: string; Description: string; Type: EquipmentType;
-  DailyRate: number; SalePrice: number; Quantity: number;
+  DailyRate: number; HourlyRate?: number; SalePrice: number; Quantity: number;
   Address?: string; Serials?: string[]; Images?: string[];
 }
 export interface UpdateEquipmentRequest {
   Name?: string; Category?: string; Description?: string; Type?: EquipmentType;
-  DailyRate?: number; SalePrice?: number; Quantity?: number; Address?: string; Images?: string[];
+  DailyRate?: number; HourlyRate?: number; SalePrice?: number; Quantity?: number;
+  Address?: string; Images?: string[];
 }
 
 export interface AvailabilityResponse {
@@ -42,7 +43,8 @@ export interface BookingResponse {
 }
 
 export interface OrderItemResponse {
-  ID: number; ItemType: ItemType; EquipmentID: number; EquipmentUnitID: number | null;
+  ID: number; ItemType: ItemType; EquipmentID: number; EquipmentName: string;
+  EquipmentUnitID: number | null;
   Quantity: number; UnitPrice: number; LineTotal: number; StartAt: string | null; EndAt: string | null;
 }
 export interface Order {
@@ -59,6 +61,25 @@ export interface Invoice {
   OrderID: number; InvoiceNumber: string; Amount: number; InvoiceStatus: string; IssuedAt: string;
 }
 export interface ApiErrorBody { error: string; }
+
+export interface PaymentCard {
+  ID: number;
+  CardholderName: string;
+  LastFour: string;
+  ExpiryMonth: number;
+  ExpiryYear: number;
+  CardType: string;
+  IsDefault: boolean;
+  CreatedAt: string;
+}
+export interface AddCardRequest {
+  CardNumber: string;
+  CardholderName: string;
+  ExpiryMonth: number;
+  ExpiryYear: number;
+  CVV: string;
+  SetDefault?: boolean;
+}
 
 export interface ReviewCreateRequest { Rating: number; Comment: string; }
 export interface ReviewResponse {

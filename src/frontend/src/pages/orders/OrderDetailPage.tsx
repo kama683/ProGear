@@ -37,9 +37,16 @@ export function OrderDetailPage() {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: listOrders,
+    refetchInterval: (query) => {
+      const data = query.state.data as typeof orders | undefined;
+      const current = data?.find(o => o.ID === Number(id));
+      return current && (current.Status === 'reserved' || current.Status === 'checked_out')
+        ? 30_000
+        : false;
+    },
   });
 
-  const order = orders.find(order => order.ID === Number(id));
+  const order = orders.find(o => o.ID === Number(id));
 
   const statusMutation = useMutation({
     mutationFn: (status: OrderStatus) => updateOrderStatus(Number(id), { Status: status }),
@@ -159,7 +166,9 @@ export function OrderDetailPage() {
                           </Badge>
                         </td>
                         <td>
-                          <div>ID: {item.EquipmentID}</div>
+                          <div style={{ fontWeight: 600 }}>
+                            {item.EquipmentName || `Equipment #${item.EquipmentID}`}
+                          </div>
                           {item.StartAt && (
                             <div className="text-xs text-muted">
                               {formatDateTime(item.StartAt)} — {formatDateTime(item.EndAt)}

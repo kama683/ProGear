@@ -29,6 +29,7 @@ type OrderItemResponse struct {
 	ID              uint
 	ItemType        string
 	EquipmentID     uint
+	EquipmentName   string
 	EquipmentUnitID *uint
 	Quantity        int
 	UnitPrice       float64

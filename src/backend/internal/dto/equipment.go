@@ -8,6 +8,7 @@ type EquipmentCreateRequest struct {
 	Description string
 	Type        string
 	DailyRate   float64
+	HourlyRate  float64
 	SalePrice   float64
 	Quantity    int
 	Address     string
@@ -21,6 +22,7 @@ type EquipmentUpdateRequest struct {
 	Description *string
 	Type        *string
 	DailyRate   *float64
+	HourlyRate  *float64
 	SalePrice   *float64
 	Quantity    *int
 	Address     *string
@@ -34,6 +36,7 @@ type EquipmentResponse struct {
 	Description string
 	Type        string
 	DailyRate   string
+	HourlyRate  string
 	SalePrice   string
 	Quantity    int
 	Address     string

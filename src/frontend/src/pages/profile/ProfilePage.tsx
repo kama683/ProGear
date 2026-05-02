@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Shield, Phone, MapPin, FileText, ShoppingCart, CheckCircle, Clock, ArrowRight } from 'lucide-react';
+import { User, Mail, Shield, Phone, MapPin, FileText, ShoppingCart, CheckCircle, Clock, ArrowRight, CreditCard, Plus } from 'lucide-react';
 import { getMe } from '../../api/users';
 import { listOrders } from '../../api/orders';
+import { listCards } from '../../api/cards';
 import { useAuth } from '../../context/AuthContext';
 import { LoadingCenter } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
+import { CardFormModal } from '../../components/cards/CardFormModal';
+import { SavedCardsList } from '../../components/cards/SavedCardsList';
 import { initials, getRoleLabel, getRoleColor, getOrderStatusLabel, getOrderStatusColor, formatCurrency } from '../../utils/format';
 
 function formatDate(iso: string) {
@@ -15,6 +19,7 @@ function formatDate(iso: string) {
 export function ProfilePage() {
   const { user: ctxUser } = useAuth();
   const navigate = useNavigate();
+  const [addCardOpen, setAddCardOpen] = useState(false);
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['me'],
@@ -25,6 +30,11 @@ export function ProfilePage() {
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
     queryFn: listOrders,
+  });
+
+  const { data: cards = [] } = useQuery({
+    queryKey: ['cards'],
+    queryFn: listCards,
   });
 
   const totalOrders = orders.length;
@@ -162,6 +172,27 @@ export function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Cards */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CreditCard size={14} /> Payment Cards
+          </span>
+          <button
+            className="btn btn-primary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}
+            onClick={() => setAddCardOpen(true)}
+          >
+            <Plus size={14} /> Add Card
+          </button>
+        </div>
+        <div className="card-body">
+          <SavedCardsList cards={cards} showActions />
+        </div>
+      </div>
+
+      <CardFormModal open={addCardOpen} onClose={() => setAddCardOpen(false)} />
 
       {/* Recent orders */}
       {recentOrders.length > 0 && (

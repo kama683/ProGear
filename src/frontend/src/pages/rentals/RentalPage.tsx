@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calculator, Calendar, CheckCircle } from 'lucide-react';
+import { Calendar, CheckCircle } from 'lucide-react';
 import { listEquipment } from '../../api/equipment';
 import { checkAvailability, calculateRental, bookRental } from '../../api/rentals';
+import { createOrder } from '../../api/orders';
 import { useToast } from '../../hooks/useToast';
 import { LoadingCenter, Spinner } from '../../components/ui/Spinner';
 import { Alert } from '../../components/ui/Alert';
@@ -16,14 +17,12 @@ export function RentalPage() {
   const { success } = useToast();
   const qc = useQueryClient();
 
-  const state = location.state as { equipmentId?: number; startAt?: string; endAt?: string; equipmentName?: string } | null;
-
+  const state = location.state as { equipmentId?: number; startAt?: string; equipmentName?: string } | null;
   const now = new Date();
-  const tomorrow = new Date(now.getTime() + 86400000);
 
   const [equipmentId, setEquipmentId] = useState<string>(state?.equipmentId ? String(state.equipmentId) : '');
   const [startAt, setStartAt] = useState(state?.startAt ?? toLocalDatetimeInput(now));
-  const [endAt, setEndAt] = useState(state?.endAt ?? toLocalDatetimeInput(tomorrow));
+  const [duration, setDuration] = useState(1);
   const [mode, setMode] = useState<'day' | 'hour'>('day');
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
   const [calcResult, setCalcResult] = useState<CalculateResponse | null>(null);
@@ -31,25 +30,29 @@ export function RentalPage() {
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState('');
 
-  const { data: equipment = [], isLoading: eqLoading } = useQuery({
-    queryKey: ['equipment'],
-    queryFn: () => listEquipment({ type: 'rental' }),
-  });
+  function computeEndAt(): string {
+    if (!startAt || duration <= 0) return '';
+    const ms = duration * (mode === 'hour' ? 3_600_000 : 86_400_000);
+    return new Date(new Date(startAt).getTime() + ms).toISOString();
+  }
 
   const allEquipment = useQuery({ queryKey: ['equipment-all'], queryFn: () => listEquipment() });
-  const rentalEquipment = allEquipment.data?.filter(e => e.Type === 'rental' || e.Type === 'both') ?? equipment;
+  const rentalEquipment = allEquipment.data?.filter(e => e.Type === 'rental' || e.Type === 'both') ?? [];
 
   async function handleCheck() {
-    if (!equipmentId || !startAt || !endAt) return;
-    if (new Date(endAt) <= new Date(startAt)) {
-      setCheckError('End date must be after start date');
+    if (!equipmentId || !startAt || duration <= 0) return;
+    if (new Date(startAt) <= new Date()) {
+      setCheckError('Rental start time cannot be in the past');
       return;
     }
+    const endAtISO = computeEndAt();
+    if (!endAtISO) return;
     setChecking(true); setCheckError(''); setAvailability(null); setCalcResult(null);
     try {
+      const startISO = new Date(startAt).toISOString();
       const [avail, calc] = await Promise.all([
-        checkAvailability(Number(equipmentId), new Date(startAt).toISOString(), new Date(endAt).toISOString()),
-        calculateRental({ EquipmentId: Number(equipmentId), StartAt: new Date(startAt).toISOString(), EndAt: new Date(endAt).toISOString(), Mode: mode }),
+        checkAvailability(Number(equipmentId), startISO, endAtISO),
+        calculateRental({ EquipmentId: Number(equipmentId), StartAt: startISO, EndAt: endAtISO, Mode: mode }),
       ]);
       setAvailability(avail); setCalcResult(calc);
     } catch (err: unknown) {
@@ -60,16 +63,28 @@ export function RentalPage() {
   }
 
   const bookMutation = useMutation({
-    mutationFn: bookRental,
-    onSuccess: (res) => {
-      setBooking(res);
-      success('Booking created!', `Booking ID: ${res.ReservationID}`);
+    mutationFn: async (data: Parameters<typeof bookRental>[0]) => {
+      const booking = await bookRental(data);
+      const order = await createOrder({
+        Items: [{
+          ItemType: 'rental',
+          EquipmentID: booking.EquipmentId,
+          Quantity: 1,
+          ReservationID: booking.ReservationID,
+        }],
+      });
+      return { booking, order };
+    },
+    onSuccess: ({ booking, order }) => {
+      setBooking(booking);
+      success('Booking created!', `Order #${order.ID} added to My Orders`);
       qc.invalidateQueries({ queryKey: ['orders'] });
+      navigate(`/orders/${order.ID}`);
     },
     onError: (err: Error) => setCheckError(err.message),
   });
 
-  if (eqLoading || allEquipment.isLoading) return <LoadingCenter />;
+  if (allEquipment.isLoading) return <LoadingCenter />;
 
   if (booking) {
     return (
@@ -121,6 +136,10 @@ export function RentalPage() {
   }
 
   const minStart = toLocalDatetimeInput(new Date());
+  const endPreview = startAt && duration > 0
+    ? new Date(new Date(startAt).getTime() + duration * (mode === 'hour' ? 3_600_000 : 86_400_000))
+      .toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <div>
@@ -146,23 +165,63 @@ export function RentalPage() {
             </div>
             <div className="form-group">
               <label className="form-label required">Rental Start</label>
-              <input type="datetime-local" className="form-input" min={minStart}
-                value={startAt} onChange={e => { setStartAt(e.target.value); setAvailability(null); }} />
+              <input
+                type="datetime-local"
+                className={`form-input${startAt && new Date(startAt) <= new Date() ? ' error' : ''}`}
+                min={minStart}
+                value={startAt}
+                onChange={e => {
+                  const val = e.target.value;
+                  setStartAt(val);
+                  setAvailability(null);
+                  setCalcResult(null);
+                  if (val && new Date(val) <= new Date()) {
+                    setCheckError('Start time cannot be in the past');
+                  } else {
+                    setCheckError('');
+                  }
+                }}
+              />
+              {startAt && new Date(startAt) <= new Date() && (
+                <div className="form-error">Choose a future date and time</div>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label required">Rental End</label>
-              <input type="datetime-local" className="form-input" min={startAt || minStart}
-                value={endAt} onChange={e => { setEndAt(e.target.value); setAvailability(null); }} />
+              <label className="form-label required">Duration</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="number" className="form-input" min={1} max={365}
+                  value={duration}
+                  onChange={e => { setDuration(Math.max(1, Number(e.target.value))); setAvailability(null); setCalcResult(null); }}
+                  style={{ flex: 1, fontWeight: 600 }}
+                />
+                <select
+                  className="form-input form-select"
+                  style={{ flex: 1.4 }}
+                  value={mode}
+                  onChange={e => { setMode(e.target.value as 'day' | 'hour'); setAvailability(null); setCalcResult(null); }}
+                >
+                  <option value="hour">{duration === 1 ? 'Hour' : 'Hours'}</option>
+                  <option value="day">{duration === 1 ? 'Day' : 'Days'}</option>
+                </select>
+              </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Calculation Mode</label>
-              <select className="form-input form-select" value={mode} onChange={e => setMode(e.target.value as 'day' | 'hour')}>
-                <option value="day">By Days</option>
-                <option value="hour">By Hours</option>
-              </select>
-            </div>
-            <button className="btn btn-primary btn-full" onClick={handleCheck} disabled={checking || !equipmentId || !startAt || !endAt}>
-              {checking ? <Spinner size="sm" white /> : <Calculator size={16} />}
+
+            {endPreview && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 12px', borderRadius: 'var(--radius)',
+                background: 'var(--color-surface-2)', marginBottom: 12,
+                fontSize: 13, color: 'var(--color-text-muted)',
+              }}>
+                <Calendar size={13} />
+                <span>Returns: <strong style={{ color: 'var(--color-text)' }}>{endPreview}</strong></span>
+              </div>
+            )}
+
+            <button className="btn btn-primary btn-full" onClick={handleCheck} disabled={checking || !equipmentId || !startAt || duration <= 0}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {checking ? <Spinner size="sm" white /> : <Calendar size={16} />}
               {checking ? 'Checking...' : 'Check Availability'}
             </button>
           </div>
@@ -177,7 +236,7 @@ export function RentalPage() {
               <div className="card-body">
                 <Alert type={availability.Available ? 'success' : 'error'}>
                   {availability.Available
-                    ? `✓ ${availability.AvailableUnits} unit(s) available for the selected dates`
+                    ? `✓ ${availability.AvailableUnits} unit(s) available`
                     : '✗ No available units for the selected dates'}
                 </Alert>
 
@@ -186,13 +245,18 @@ export function RentalPage() {
                     <div style={{ background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-border)', borderRadius: 'var(--radius-lg)', padding: '20px', textAlign: 'center', marginBottom: 16 }}>
                       <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginBottom: 6 }}>ESTIMATED COST</div>
                       <div className="price-large" style={{ color: 'var(--color-primary)' }}>{formatCurrency(calcResult.Amount)}</div>
-                      <div className="text-xs text-muted mt-1">Mode: {mode === 'day' ? 'by days' : 'by hours'}</div>
+                      <div className="text-xs text-muted mt-1">{duration} {mode === 'day' ? (duration === 1 ? 'day' : 'days') : (duration === 1 ? 'hour' : 'hours')}</div>
                     </div>
 
                     <button
                       className="btn btn-success btn-full"
                       disabled={bookMutation.isPending}
-                      onClick={() => bookMutation.mutate({ EquipmentID: Number(equipmentId), StartAt: new Date(startAt).toISOString(), EndAt: new Date(endAt).toISOString() })}
+                      onClick={() => bookMutation.mutate({
+                        EquipmentID: Number(equipmentId),
+                        StartAt: new Date(startAt).toISOString(),
+                        EndAt: computeEndAt(),
+                      })}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                       {bookMutation.isPending ? <Spinner size="sm" white /> : null}
                       {bookMutation.isPending ? 'Booking...' : 'Book Now'}
@@ -207,7 +271,7 @@ export function RentalPage() {
             <div className="card" style={{ background: 'var(--color-surface-2)' }}>
               <div className="card-body" style={{ textAlign: 'center', padding: 48 }}>
                 <Calendar size={32} style={{ color: 'var(--color-text-light)', marginBottom: 12 }} />
-                <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Select equipment and dates,<br />then click "Check Availability"</div>
+                <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Select equipment and duration,<br />then click "Check Availability"</div>
               </div>
             </div>
           )}
