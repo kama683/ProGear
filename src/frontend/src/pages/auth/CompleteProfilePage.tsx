@@ -6,30 +6,70 @@ import { useAuth } from '../../context/AuthContext';
 import { Alert } from '../../components/ui/Alert';
 import { Spinner } from '../../components/ui/Spinner';
 
+// Formats digits into +7 (XXX) XXX-XX-XX
+function formatKzPhone(digits: string): string {
+  const d = digits.slice(0, 10);
+  let result = '+7';
+  if (d.length === 0) return result;
+  if (d.length <= 3) return `+7 (${d}`;
+  if (d.length <= 6) return `+7 (${d.slice(0, 3)}) ${d.slice(3)}`;
+  if (d.length <= 8) return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8)}`;
+}
+
+function extractDigits(value: string): string {
+  // Remove +7 prefix and all non-digits
+  return value.replace(/^\+7/, '').replace(/\D/g, '');
+}
+
+function isPhoneComplete(digits: string): boolean {
+  return digits.length === 10;
+}
+
 export function CompleteProfilePage() {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [phone, setPhone] = useState('');
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   if (!user) {
     navigate('/login');
     return null;
   }
 
+  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = extractDigits(e.target.value);
+    setPhoneDigits(digits.slice(0, 10));
+  }
+
+  function handlePhoneKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace' && phoneDigits.length === 0) {
+      e.preventDefault();
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!phone.trim() || !address.trim()) {
-      setError('Please fill in both fields');
+    setPhoneTouched(true);
+
+    if (!isPhoneComplete(phoneDigits)) {
+      setError('Enter a valid phone number: +7 (XXX) XXX-XX-XX');
       return;
     }
+    if (!address.trim()) {
+      setError('Please enter your residential address');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
-      const updated = await updateProfile({ Phone: phone.trim(), Address: address.trim() });
+      const fullPhone = `+7${phoneDigits}`;
+      const updated = await updateProfile({ Phone: fullPhone, Address: address.trim() });
       const stored = localStorage.getItem('user');
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -43,6 +83,9 @@ export function CompleteProfilePage() {
       setLoading(false);
     }
   }
+
+  const phoneDisplay = formatKzPhone(phoneDigits);
+  const phoneInvalid = phoneTouched && !isPhoneComplete(phoneDigits);
 
   return (
     <div className="auth-card">
@@ -67,12 +110,19 @@ export function CompleteProfilePage() {
           </label>
           <input
             type="tel"
-            className="form-input"
-            placeholder="+998 90 123 45 67"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
+            className={`form-input${phoneInvalid ? ' error' : ''}`}
+            value={phoneDisplay}
+            onChange={handlePhoneChange}
+            onKeyDown={handlePhoneKeyDown}
+            onBlur={() => setPhoneTouched(true)}
+            placeholder="+7 (___) ___-__-__"
             autoFocus
+            autoComplete="tel"
           />
+          {phoneInvalid && (
+            <div className="form-error">Enter all 10 digits after +7</div>
+          )}
+          <div className="form-hint">Kazakhstan number: +7 (XXX) XXX-XX-XX</div>
         </div>
 
         <div className="form-group">
