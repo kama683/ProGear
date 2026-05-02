@@ -6,6 +6,7 @@ export type RentalMode = 'day' | 'hour';
 
 export interface User {
   ID: number; Name: string; Email: string; Role: UserRole;
+  Phone?: string; Address?: string;
 }
 
 export interface RegisterRequest { Name: string; Email: string; Password: string; ConfirmPassword: string; }

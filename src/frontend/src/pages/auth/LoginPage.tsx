@@ -24,7 +24,11 @@ export function LoginPage() {
     try {
       const res = await login({ Email: email, Password: password });
       setUser(res.User);
-      navigate('/dashboard');
+      if (!res.User.Phone || !res.User.Address) {
+        navigate('/complete-profile');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

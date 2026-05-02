@@ -4,6 +4,7 @@ import { AuthLayout } from '../components/layout/AuthLayout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
+import { CompleteProfilePage } from '../pages/auth/CompleteProfilePage';
 import { LandingPage } from '../pages/landing/LandingPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EquipmentListPage } from '../pages/equipment/EquipmentListPage';
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
     children: [
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'complete-profile', element: <CompleteProfilePage /> },
     ],
   },
   {

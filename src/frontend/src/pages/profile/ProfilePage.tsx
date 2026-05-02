@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Shield, FileText, ShoppingCart, CheckCircle, Clock, ArrowRight } from 'lucide-react';
+import { User, Mail, Shield, Phone, MapPin, FileText, ShoppingCart, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import { getMe } from '../../api/users';
 import { listOrders } from '../../api/orders';
 import { useAuth } from '../../context/AuthContext';
@@ -121,6 +121,26 @@ export function ProfilePage() {
               <div>
                 <div className="detail-label">Email</div>
                 <div className="detail-value">{user.Email}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Phone size={18} color="var(--color-primary)" />
+              </div>
+              <div>
+                <div className="detail-label">Phone</div>
+                <div className="detail-value">{user.Phone || '—'}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius)', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MapPin size={18} color="var(--color-primary)" />
+              </div>
+              <div>
+                <div className="detail-label">Address</div>
+                <div className="detail-value">{user.Address || '—'}</div>
               </div>
             </div>
 

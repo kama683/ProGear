@@ -82,6 +82,7 @@ func main() {
 
 		users := v1.Group("/users", extensions.FiberAuthMiddleware(cfg))
 		users.Get("/me", h.Users.Me)
+		users.Put("/me", h.Users.UpdateMe)
 		users.Get("", extensions.RequireRoles(constants.RoleAdmin), h.Users.List)
 
 		equipment := v1.Group("/equipment")

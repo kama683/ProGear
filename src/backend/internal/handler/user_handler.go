@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"rental/internal/dto"
 	"rental/internal/service"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,15 +15,6 @@ func NewUserHandler(svc *service.Services) *UsersHandler {
 	return &UsersHandler{users: svc.Users}
 }
 
-// Me godoc
-// @Summary Get current user
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {object} dto.MyResponse
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /users/me [get]
 func (h *UsersHandler) Me(c *fiber.Ctx) error {
 	uid, ok := c.Locals("user_id").(uint)
 	if !ok {
@@ -35,14 +27,22 @@ func (h *UsersHandler) Me(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-// List godoc
-// @Summary List users
-// @Tags users
-// @Produce json
-// @Security BearerAuth
-// @Success 200 {array} dto.MyResponse
-// @Failure 500 {object} map[string]string
-// @Router /users [get]
+func (h *UsersHandler) UpdateMe(c *fiber.Ctx) error {
+	uid, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	var req dto.UpdateProfileRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+	}
+	resp, err := h.users.UpdateProfile(uid, req)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(resp)
+}
+
 func (h *UsersHandler) List(c *fiber.Ctx) error {
 	users, err := h.users.ListUsers()
 	if err != nil {

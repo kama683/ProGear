@@ -6,4 +6,11 @@ type MyResponse struct {
 	Name		string
 	Email		string
 	Role		string
+	Phone		string
+	Address		string
+}
+
+type UpdateProfileRequest struct {
+	Phone   string
+	Address string
 }

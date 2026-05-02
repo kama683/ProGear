@@ -12,6 +12,7 @@ interface AuthContextType {
   isCustomer: boolean;
   canManageEquipment: boolean;
   canManageOrders: boolean;
+  isProfileComplete: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isCustomer = user?.Role === 'customer';
   const canManageEquipment = isAdmin || isManager;
   const canManageOrders = isAdmin || isManager;
+  const isProfileComplete = !!(user?.Phone && user?.Address);
 
   return (
     <AuthContext.Provider value={{
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isCustomer,
       canManageEquipment,
       canManageOrders,
+      isProfileComplete,
     }}>
       {children}
     </AuthContext.Provider>

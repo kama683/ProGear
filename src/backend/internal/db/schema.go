@@ -104,6 +104,8 @@ func InitSchema(db *sql.DB) error {
 			UNIQUE(equipment_id, user_id)
 		);`,
 		`CREATE INDEX IF NOT EXISTS idx_equipment_reviews_equipment_id ON equipment_reviews(equipment_id);`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT NOT NULL DEFAULT '';`,
 	}
 
 	tx, err := db.Begin()

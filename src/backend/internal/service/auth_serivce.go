@@ -63,13 +63,15 @@ func (s *userAuthServices) Login(req dto.LoginRequest) (dto.AuthResponse, error)
 		hashedPassword string
 		role           string
 		isActive       bool
+		phone          string
+		address        string
 	)
 
 	err := s.db.QueryRow(`
-		SELECT id, name, email, password_hash, role, is_active
+		SELECT id, name, email, password_hash, role, is_active, phone, address
 		FROM users
 		WHERE email = $1
-	`, strings.ToLower(strings.TrimSpace(req.Email))).Scan(&id, &name, &email, &hashedPassword, &role, &isActive)
+	`, strings.ToLower(strings.TrimSpace(req.Email))).Scan(&id, &name, &email, &hashedPassword, &role, &isActive, &phone, &address)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dto.AuthResponse{}, errors.New("username or password is incorrect")
@@ -98,10 +100,12 @@ func (s *userAuthServices) Login(req dto.LoginRequest) (dto.AuthResponse, error)
 		AccessToken:  access,
 		RefreshToken: refresh,
 		User: dto.UserResponse{
-			ID:    id,
-			Name:  name,
-			Email: email,
-			Role:  role,
+			ID:      id,
+			Name:    name,
+			Email:   email,
+			Role:    role,
+			Phone:   phone,
+			Address: address,
 		},
 	}, nil
 }

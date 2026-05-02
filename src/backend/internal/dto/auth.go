@@ -18,6 +18,8 @@ type UserResponse struct{
 	Name 		string
 	Email 		string
 	Role 		string
+	Phone		string
+	Address		string
 }
 
 type AuthResponse struct {
