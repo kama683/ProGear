@@ -66,13 +66,18 @@ export function EquipmentListPage() {
   return (
     <div>
       <div className="page-header">
-        <div>
-          <div className="page-title">Equipment</div>
-          <div className="page-subtitle">Equipment catalog for rental and sale</div>
+        <div className="page-header-info">
+          <div className="page-header-icon">
+            <Package size={20} />
+          </div>
+          <div>
+            <div className="page-title">Equipment</div>
+            <div className="page-subtitle">Browse and manage the rental &amp; sale catalog</div>
+          </div>
         </div>
         {canManageEquipment && (
           <button className="btn btn-primary" onClick={() => navigate('/equipment/new')}>
-            <Plus size={16} /> Add
+            <Plus size={16} /> Add Equipment
           </button>
         )}
       </div>

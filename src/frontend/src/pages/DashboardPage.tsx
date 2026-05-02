@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Package, Plus, Search } from 'lucide-react';
+import { Package, Plus, Search, LayoutDashboard } from 'lucide-react';
 import { listEquipment } from '../api/equipment';
 import { useAuth } from '../context/AuthContext';
 import { LoadingCenter } from '../components/ui/Spinner';
@@ -35,9 +35,14 @@ export function DashboardPage() {
   return (
     <div>
       <div className="page-header">
-        <div>
-          <div className="page-title">Welcome, {user?.Name?.split(' ')[0]}!</div>
-          <div className="page-subtitle">Equipment catalog for rental and sale</div>
+        <div className="page-header-info">
+          <div className="page-header-icon">
+            <LayoutDashboard size={20} />
+          </div>
+          <div>
+            <div className="page-title">Welcome back, {user?.Name?.split(' ')[0]}!</div>
+            <div className="page-subtitle">Browse equipment available for rental and purchase</div>
+          </div>
         </div>
         <div className="page-header-actions">
           {isCustomer && (

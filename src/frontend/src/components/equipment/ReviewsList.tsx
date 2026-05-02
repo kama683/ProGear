@@ -52,7 +52,7 @@ export function ReviewsList({ equipmentId }: { equipmentId: number }) {
     onError: (err: Error) => toastError('Cannot submit review', err.message),
   });
 
-  const userHasReviewed = summary?.Reviews.some(r => r.UserID === user?.ID);
+  const userHasReviewed = summary?.Reviews?.some(r => r.UserID === user?.ID);
 
   return (
     <div className="card" style={{ marginTop: 16 }}>
@@ -118,7 +118,7 @@ export function ReviewsList({ equipmentId }: { equipmentId: number }) {
           </div>
         )}
 
-        {summary?.Reviews.map(r => (
+        {summary?.Reviews?.map(r => (
           <div key={r.ID} style={{ paddingBottom: 16, borderBottom: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
               <div>

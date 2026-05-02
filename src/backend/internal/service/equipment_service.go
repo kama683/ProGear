@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"rental/internal/dto"
 	"strings"
+	"time"
 )
 
 type EquipmentService interface {
@@ -85,12 +86,16 @@ func (s *equipmentService) GetByID(id uint) (dto.EquipmentDetailResponse, error)
 		return dto.EquipmentDetailResponse{}, fmt.Errorf("get equipment: %w", err)
 	}
 
-	_ = s.db.QueryRow(
-		`SELECT COUNT(*) FROM equipment_units WHERE equipment_id = $1 AND status = 'available'`, id,
-	).Scan(&e.AvailableUnits)
+	_ = s.db.QueryRow(`
+		SELECT e.quantity - COALESCE(
+			(SELECT COUNT(*) FROM equipment_units eu
+			 WHERE eu.equipment_id = e.id AND eu.status IN ('reserved','checked_out')),
+		0)
+		FROM equipment e WHERE e.id = $1
+	`, id).Scan(&e.AvailableUnits)
 
 	rows, err := s.db.Query(
-		`SELECT serial_number FROM equipment_units WHERE equipment_id = $1 ORDER BY id`, id,
+		`SELECT serial_number FROM equipment_units WHERE equipment_id = $1 AND serial_number NOT LIKE 'AUTO-%' ORDER BY id`, id,
 	)
 	if err != nil {
 		return dto.EquipmentDetailResponse{}, fmt.Errorf("list serials: %w", err)
@@ -153,6 +158,18 @@ func (s *equipmentService) Create(req dto.EquipmentCreateRequest) (dto.Equipment
 		}
 	}
 
+	if len(req.Serials) == 0 && req.Quantity > 0 {
+		for i := 1; i <= req.Quantity; i++ {
+			serial := fmt.Sprintf("AUTO-%d-%05d", out.ID, i)
+			if _, err := tx.Exec(
+				`INSERT INTO equipment_units(equipment_id, serial_number, status) VALUES($1,$2,'available')`,
+				out.ID, serial,
+			); err != nil {
+				return dto.EquipmentResponse{}, fmt.Errorf("auto-create unit: %w", err)
+			}
+		}
+	}
+
 	for i, imageURL := range req.Images {
 		imageURL = strings.TrimSpace(imageURL)
 		if imageURL == "" {
@@ -193,6 +210,35 @@ func (s *equipmentService) Update(id uint, req dto.EquipmentUpdateRequest) (dto.
 		WHERE id = $1
 	`, id, req.Name, req.Category, req.Description, req.Type, req.DailyRate, req.SalePrice, req.Quantity); err != nil {
 		return dto.EquipmentResponse{}, fmt.Errorf("update equipment: %w", err)
+	}
+
+	if req.Quantity != nil {
+		var currentUnitCount int
+		_ = tx.QueryRow(`SELECT COUNT(*) FROM equipment_units WHERE equipment_id = $1`, id).Scan(&currentUnitCount)
+
+		diff := *req.Quantity - currentUnitCount
+		if diff > 0 {
+			base := time.Now().UnixNano()
+			for i := 0; i < diff; i++ {
+				serial := fmt.Sprintf("AUTO-%d-%d", id, base+int64(i))
+				if _, err := tx.Exec(
+					`INSERT INTO equipment_units(equipment_id, serial_number, status) VALUES($1,$2,'available')`,
+					id, serial,
+				); err != nil {
+					return dto.EquipmentResponse{}, fmt.Errorf("add unit: %w", err)
+				}
+			}
+		} else if diff < 0 {
+			if _, err := tx.Exec(`
+				DELETE FROM equipment_units WHERE id IN (
+					SELECT id FROM equipment_units
+					WHERE equipment_id = $1 AND status = 'available'
+					ORDER BY id DESC LIMIT $2
+				)
+			`, id, -diff); err != nil {
+				return dto.EquipmentResponse{}, fmt.Errorf("remove units: %w", err)
+			}
+		}
 	}
 
 	if req.Images != nil {
