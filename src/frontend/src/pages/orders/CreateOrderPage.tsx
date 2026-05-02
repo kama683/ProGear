@@ -141,8 +141,12 @@ export function CreateOrderPage() {
                       <select
                         className="form-input form-select"
                         value={item.EquipmentID || ''}
-                        onChange={e => updateItem(item._key, { EquipmentID: Number(e.target.value), ItemType: 'rental' })}
-                      >
+                        onChange={e => {
+                          const id = Number(e.target.value);
+                          const sel = equipment.find(x => x.ID === id);
+                          const nextType: ItemType = sel?.Type === 'sale' ? 'sale' : 'rental';
+                          updateItem(item._key, { EquipmentID: id, ItemType: nextType });
+                        }}                      >
                         <option value="">Select...</option>
                         {equipment.map(e => (
                           <option key={e.ID} value={e.ID}>{e.Name} ({getEquipmentTypeLabel(e.Type)})</option>
