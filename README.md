@@ -49,7 +49,8 @@ Once both the backend and frontend are running, open the app in your browser. Yo
 Swagger UI (interactive API docs) is available at the /swagger path when the backend is running.
 
 ## Screenshots
-<img width="1920" height="862" alt="image" src="https://github.com/user-attachments/assets/5429adc2-2323-4e0a-8045-720273dc4786" />
+<img width="1920" height="875" alt="image" src="https://github.com/user-attachments/assets/4e25ac29-0fba-4435-84cf-e96c85a45eb6" />
+
 <img width="1920" height="871" alt="image" src="https://github.com/user-attachments/assets/2e32d05e-91d8-4b50-a456-a1fb274e28bf" />
 
 ## Technology Stack
@@ -63,6 +64,10 @@ Swagger UI (interactive API docs) is available at the /swagger path when the bac
 | Auth | JWT (access + refresh tokens) |
 | API Docs | OpenAPI 3 / Swagger UI |
 | Deploy | Vercel (frontend), custom server (API) |
+
+The deployment was made on the vercel and railway websites
+<img width="1920" height="872" alt="image" src="https://github.com/user-attachments/assets/bbe2641a-55c6-4af0-8b0b-ed6649220ec2" />
+<img width="1920" height="871" alt="image" src="https://github.com/user-attachments/assets/7a8b9b7b-4323-480e-a41e-6a8883375abd" />
 
 
 
