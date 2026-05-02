@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Phone } from 'lucide-react';
 import { updateProfile } from '../../api/users';
@@ -36,10 +36,9 @@ export function CompleteProfilePage() {
   const [error, setError] = useState('');
   const [phoneTouched, setPhoneTouched] = useState(false);
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
 
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
     const digits = extractDigits(e.target.value);
